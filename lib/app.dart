@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:smgi.connect/features/navbar/home_bottom_nav.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:smgi.connect/views/payments/onboarding/onboarding_screen.dart';
+
 import 'core/theme/app_theme.dart';
 
 class SMGIApp extends StatelessWidget {
@@ -7,12 +9,17 @@ class SMGIApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'SMGI Connect',
-      theme: AppTheme.lightTheme,
-      // TEMP: Auth bypassed - backend dev on leave, restore before merging
-      home: const HomeBottomNav(),
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (_, child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'SMGI Connect',
+        theme: AppTheme.light,
+        home: child,
+      ),
+      child: const OnboardingScreen(),
     );
   }
 }
