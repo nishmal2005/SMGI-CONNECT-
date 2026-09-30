@@ -19,9 +19,18 @@ class ProfileScreen extends StatelessWidget {
     final vm = context.watch<ProfileViewModel>();
 
     return AppScaffold(
+      padding: EdgeInsets.zero,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(AppSizes.appBarHeight),
-        child: const BackAppBar(title: 'Profile'),
+        preferredSize: Size.fromHeight(
+          AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: AppSizes.appBarHeight,
+            child: const BackAppBar(title: 'Profile'),
+          ),
+        ),
       ),
       body: SafeArea(
         top: false,
@@ -99,9 +108,7 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const SettingsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
                   );
                 },
               ),
@@ -184,10 +191,7 @@ class _Tile extends StatelessWidget {
             top: isFirst ? Radius.circular(12.r) : Radius.zero,
             bottom: isLast ? Radius.circular(12.r) : Radius.zero,
           ),
-          border: Border.all(
-            color: const Color(0xFFD1D1D1),
-            width: 0.75.w,
-          ),
+          border: Border.all(color: const Color(0xFFD1D1D1), width: 0.75.w),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -200,11 +204,7 @@ class _Tile extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16.r,
-              color: Colors.black,
-            ),
+            Icon(Icons.arrow_forward_ios, size: 16.r, color: Colors.black),
           ],
         ),
       ),

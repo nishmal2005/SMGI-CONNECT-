@@ -19,111 +19,117 @@ class AccountDetailsScreen extends StatelessWidget {
     final vm = context.watch<ProfileViewModel>();
 
     return AppScaffold(
+      padding: EdgeInsets.zero,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(AppSizes.appBarHeight),
-        child: const BackAppBar(title: 'Account Details'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSizes.paddingLarge,
-          vertical: AppSizes.padding,
+        preferredSize: Size.fromHeight(
+          AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
         ),
-        child: Column(
-          children: [
-            SizedBox(height: 12.h),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: AppSizes.appBarHeight,
+            child: const BackAppBar(title: 'Account Details'),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSizes.paddingLarge,
+            vertical: AppSizes.padding,
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 12.h),
 
-            // ── Avatar ─────────────────────────────
-            _AvatarLarge(image: vm.avatar),
+              // ── Avatar ─────────────────────────────
+              _AvatarLarge(image: vm.avatar),
 
-            SizedBox(height: 12.h),
+              SizedBox(height: 12.h),
 
-            Text(
-              vm.name,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: AppColors.black,
-              ),
-            ),
-
-            SizedBox(height: 8.h),
-
-            // ── Edit link ──────────────────────────
-            InkWell(
-              onTap: () => showProfileEditSheet(context),
-              borderRadius: BorderRadius.circular(6.r),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8.w,
-                  vertical: 4.h,
+              Text(
+                vm.name,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.black,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.edit_outlined,
-                      size: 16.r,
-                      color: AppColors.primary,
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      'Edit',
-                      style: TextStyle(
+              ),
+
+              SizedBox(height: 8.h),
+
+              // ── Edit link ──────────────────────────
+              InkWell(
+                onTap: () => showProfileEditSheet(context),
+                borderRadius: BorderRadius.circular(6.r),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 16.r,
                         color: AppColors.primary,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
                       ),
+                      SizedBox(width: 6.w),
+                      Text(
+                        'Edit',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // ── Details card ───────────────────────
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Account Details', style: AppTextStyles.pageTitle),
+                    const Gap(h: 12),
+                    Divider(height: 1, color: AppColors.lightGray),
+                    const Gap(h: 12),
+
+                    _DetailRow(label: 'Name', value: vm.name),
+                    const Gap(h: 12),
+                    _DetailRow(label: 'Email', value: vm.email),
+                    const Gap(h: 12),
+                    _DetailRow(label: 'Mobile', value: vm.phone),
+                    const Gap(h: 12),
+                    _DetailRow(
+                      label: 'Course',
+                      value: vm.course,
+                      valueColor: AppColors.primary,
                     ),
                   ],
                 ),
               ),
-            ),
 
-            SizedBox(height: 24.h),
-
-            // ── Details card ───────────────────────
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 16.h,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Account Details', style: AppTextStyles.pageTitle),
-                  const Gap(h: 12),
-                  Divider(height: 1, color: AppColors.lightGray),
-                  const Gap(h: 12),
-
-                  _DetailRow(label: 'Name', value: vm.name),
-                  const Gap(h: 12),
-                  _DetailRow(label: 'Email', value: vm.email),
-                  const Gap(h: 12),
-                  _DetailRow(label: 'Mobile', value: vm.phone),
-                  const Gap(h: 12),
-                  _DetailRow(
-                    label: 'Course',
-                    value: vm.course,
-                    valueColor: AppColors.primary,
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 24.h),
-          ],
+              SizedBox(height: 24.h),
+            ],
+          ),
         ),
       ),
     );
@@ -169,11 +175,7 @@ class _DetailRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _DetailRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
