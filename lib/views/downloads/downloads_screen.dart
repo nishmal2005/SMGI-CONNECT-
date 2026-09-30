@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/data/models/download_model.dart';
-import 'package:smgi.connect/viewmodels/downloads_viewmodel.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../data/models/download_model.dart';
+import '../../viewmodels/downloads_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/back_app_bar.dart';
+import '../../widgets/gap.dart';
+import '../../widgets/gradient_button.dart';
+import '../home/home_shell.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
@@ -26,6 +29,14 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     });
   }
 
+  void _onDone() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeShell()),
+      (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<DownloadsViewModel>();
@@ -35,40 +46,42 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         preferredSize: Size.fromHeight(AppSizes.appBarHeight),
         child: const BackAppBar(title: 'Downloads'),
       ),
-      body: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            AppSizes.paddingLarge,
-            AppSizes.paddingSmall,
-            AppSizes.padding,
-            AppSizes.paddingLarge,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ─────────────────────────────
-              Text(
-                'Downloads',
-                style: AppTextStyles.pageTitle.copyWith(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                ),
+      body: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSizes.paddingLarge,
+          AppSizes.paddingSmall,
+          AppSizes.padding,
+          AppSizes.paddingLarge,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ────────────────────────────────
+            Text(
+              'Downloads',
+              style: AppTextStyles.pageTitle.copyWith(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
               ),
-              SizedBox(height: 5.h),
-              Text(
-                'Acknowledgements & Forms related to your\n'
-                'admission process.',
-                style: AppTextStyles.condition.copyWith(
-                  fontSize: 14.sp,
-                ),
-              ),
-              SizedBox(height: 12.h),
+            ),
+            Gap(h: 5),
+            Text(
+              'Acknowledgements & Forms related to your\n'
+              'admission process.',
+              style: AppTextStyles.condition.copyWith(fontSize: 14.sp),
+            ),
+            Gap(h: 12),
 
-              // ── Body ───────────────────────────────
-              Expanded(child: _buildBody(vm)),
-            ],
-          ),
+            // ── List ──────────────────────────────────
+            Expanded(child: _buildBody(vm)),
+
+            // ── Done ──────────────────────────────────
+            Gap(h: 16),
+            GradientButton(
+              text: 'Done',
+              onTap: _onDone,
+            ),
+          ],
         ),
       ),
     );
@@ -90,7 +103,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                 textAlign: TextAlign.center,
                 style: AppTextStyles.body2.copyWith(color: AppColors.error),
               ),
-              SizedBox(height: 12.h),
+              Gap(h: 12),
               TextButton(
                 onPressed: vm.load,
                 child: const Text('Retry'),
@@ -136,8 +149,7 @@ class _DownloadCard extends StatelessWidget {
       );
       return;
     }
-    // TODO: launch url with url_launcher
-    // await launchUrl(Uri.parse(url));
+    // TODO: launch with url_launcher.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Opening: $url')),
     );
@@ -163,7 +175,7 @@ class _DownloadCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Icon ───────────────────────────────
+          // ── Icon ─────────────────────────────
           Container(
             width: 32.r,
             height: 32.r,
@@ -177,9 +189,9 @@ class _DownloadCard extends StatelessWidget {
               size: 17.r,
             ),
           ),
-          SizedBox(width: 8.w),
+          Gap(w: 8),
 
-          // ── Content ────────────────────────────
+          // ── Content ──────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +207,7 @@ class _DownloadCard extends StatelessWidget {
                     fontSize: 12.sp,
                   ),
                 ),
-                SizedBox(height: 2.h),
+                Gap(h: 2),
                 Text(
                   item.subtitle,
                   maxLines: 2,
@@ -206,7 +218,7 @@ class _DownloadCard extends StatelessWidget {
                     fontSize: 9.sp,
                   ),
                 ),
-                SizedBox(height: 5.h),
+                Gap(h: 5),
                 Align(
                   alignment: Alignment.centerRight,
                   child: SizedBox(
