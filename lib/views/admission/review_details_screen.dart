@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/viewmodels/application_viewmodel.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../viewmodels/application_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/leave_confirmation_dialog.dart';
@@ -21,8 +21,6 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   bool _confirmed = false;
 
   void _continue() {
-    // Application already created in UploadMarksCardScreen.
-    // Nothing to submit here — just move to payment.
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const PaymentScreen()),
@@ -35,131 +33,145 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     final personal = app.personal;
 
     return AppScaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: 20.w,
-            vertical: 16.h,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) => LeaveConfirmationDialog(
-                      onLeave: () {
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                      },
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: 20.w,
+          vertical: 16.h,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Back ────────────────────────────────
+            IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => LeaveConfirmationDialog(
+                    onLeave: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                  ),
+                );
+              },
+              icon: Icon(
+                Icons.arrow_back,
+                color: AppColors.accent,
+                size: 22.r,
+              ),
+            ),
+            SizedBox(height: 8.h),
+
+            // ── Personal Information ────────────────
+            _ReviewCard(
+              title: 'Personal Information',
+              data: {
+                'Name': _s(personal['name']),
+                'Gender': _s(personal['gender']),
+                'Email': _s(personal['email']),
+                'Mobile': _s(personal['phone1']),
+              },
+            ),
+            SizedBox(height: 8.h),
+
+            // ── Course Selected ─────────────────────
+            _ReviewCard(
+              title: 'Course Selected',
+              data: {
+                'Discipline': app.discipline ?? '—',
+                'Program': app.program ?? '—',
+              },
+            ),
+            SizedBox(height: 8.h),
+
+            // ── Required Documents ──────────────────
+            _ReviewCard(
+              title: 'Required Documents',
+              data: {
+                'Aadhaar Card': (app.aadhaarFrontPath != null &&
+                        app.aadhaarBackPath != null)
+                    ? 'Uploaded'
+                    : 'Pending',
+                '10th Marks Card':
+                    app.marksCardPath != null ? 'Uploaded' : 'Pending',
+              },
+            ),
+            SizedBox(height: 8.h),
+
+            // ── Referral Code ───────────────────────
+            _ReviewCard(
+              title: 'Referral Code',
+              data: {
+                'Referral': app.referralCode ?? '—',
+              },
+            ),
+            SizedBox(height: 24.h),
+
+            // ── Consent ─────────────────────────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () => setState(() => _confirmed = !_confirmed),
+                  child: Container(
+                    width: 20.r,
+                    height: 20.r,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.r),
+                      border: Border.all(
+                        color: const Color(0xFF9BA3B0),
+                        width: 1.5.w,
+                      ),
                     ),
-                  );
-                },
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: AppColors.accent,
-                  size: 22.r,
+                    child: _confirmed
+                        ? Icon(
+                            Icons.check,
+                            size: 16.r,
+                            color: AppColors.accent,
+                          )
+                        : null,
+                  ),
                 ),
-              ),
-              SizedBox(height: 8.h),
-
-              _ReviewCard(
-                title: 'Personal Information',
-                data: {
-                  'Name': (personal['name'] ?? '—').toString(),
-                  'Gender': (personal['gender'] ?? '—').toString(),
-                  'Email': (personal['email'] ?? '—').toString(),
-                  'Mobile': (personal['phone1'] ?? '—').toString(),
-                },
-              ),
-              SizedBox(height: 8.h),
-
-              _ReviewCard(
-                title: 'Course Selected',
-                data: {
-                  'Discipline': app.discipline ?? '—',
-                  'Program': app.program ?? '—',
-                },
-              ),
-              SizedBox(height: 8.h),
-
-              _ReviewCard(
-                title: 'Required Documents',
-                data: {
-                  'Aadhaar Card': (app.aadhaarFrontPath != null &&
-                          app.aadhaarBackPath != null)
-                      ? 'Uploaded'
-                      : 'Pending',
-                  '10th Marks Card':
-                      app.marksCardPath != null ? 'Uploaded' : 'Pending',
-                },
-              ),
-              SizedBox(height: 8.h),
-
-              _ReviewCard(
-                title: 'Referral Code',
-                data: {
-                  'Referral': app.referralCode ?? '—',
-                },
-              ),
-              SizedBox(height: 24.h),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () =>
-                        setState(() => _confirmed = !_confirmed),
-                    child: Container(
-                      width: 20.r,
-                      height: 20.r,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4.r),
-                        border: Border.all(
-                          color: const Color(0xFF9BA3B0),
-                          width: 1.5.w,
-                        ),
-                      ),
-                      child: _confirmed
-                          ? Icon(
-                              Icons.check,
-                              size: 16.r,
-                              color: AppColors.accent,
-                            )
-                          : null,
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'I confirm that all the information provided above '
+                    'is correct and complete to the best of my '
+                    'knowledge and belief.',
+                    style: AppTextStyles.body3.copyWith(
+                      color: AppColors.black,
                     ),
                   ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      'I confirm that all the information provided above '
-                      'is correct and complete to the best of my '
-                      'knowledge and belief.',
-                      style: AppTextStyles.body3.copyWith(
-                        color: AppColors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24.h),
+                ),
+              ],
+            ),
+            SizedBox(height: 24.h),
 
-              GradientButton(
-                text: 'Continue',
-                enabled: _confirmed,
-                onTap: _continue,
-              ),
-            ],
-          ),
+            // ── Continue ────────────────────────────
+            GradientButton(
+              text: 'Continue',
+              enabled: _confirmed,
+              onTap: _continue,
+            ),
+          ],
         ),
       ),
     );
   }
+
+  String _s(dynamic v) {
+    if (v == null) return '—';
+    final s = v.toString().trim();
+    return s.isEmpty ? '—' : s;
+  }
 }
+
+// ─────────────────────────────────────────────────────
+// Summary card
+// ─────────────────────────────────────────────────────
 
 class _ReviewCard extends StatelessWidget {
   final String title;

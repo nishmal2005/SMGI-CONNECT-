@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:smgi.connect/core/network/api_exception.dart';
-import 'package:smgi.connect/core/utils/validators.dart';
-import 'package:smgi.connect/data/repositories/auth_repository.dart';
 
-
+import '../core/network/api_exception.dart';
+import '../core/utils/validators.dart';
+import '../data/repositories/auth_repository.dart';
 
 enum AuthFlow { register, forgotPassword }
 
@@ -13,6 +12,38 @@ class AuthViewModel extends ChangeNotifier {
   AuthViewModel(this._repo);
   final AuthRepository _repo;
 
+  // ── Global auth state ───────────────────────────
+  bool _isLoggedIn = false;
+  bool _isBootstrapping = true;
+  bool _hasSeenOnboarding = false;
+
+  bool get isLoggedIn => _isLoggedIn;
+  bool get isBootstrapping => _isBootstrapping;
+  bool get hasSeenOnboarding => _hasSeenOnboarding;
+
+  /// Called once at app start. Reads the stored token and
+  /// the "onboarding seen" flag from SharedPreferences.
+  Future<void> bootstrap() async {
+    try {
+      _isLoggedIn = await _repo.isLoggedIn();
+      _hasSeenOnboarding = await _repo.hasSeenOnboarding();
+    } catch (_) {
+      _isLoggedIn = false;
+      _hasSeenOnboarding = false;
+    } finally {
+      _isBootstrapping = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> markOnboardingSeen() async {
+    if (_hasSeenOnboarding) return;
+    _hasSeenOnboarding = true;
+    await _repo.markOnboardingSeen();
+    notifyListeners();
+  }
+
+  // ── Existing flow state ─────────────────────────
   AuthFlow flow = AuthFlow.register;
   bool isLoading = false;
   String? errorMessage;
@@ -29,14 +60,12 @@ class AuthViewModel extends ChangeNotifier {
   bool hasSpecial = false;
   bool hasMinLength = false;
 
-  // ── Flow ─────────────────────────────────────────
   void setFlow(AuthFlow value) {
     if (flow == value) return;
     flow = value;
     notifyListeners();
   }
 
-  // ── Password ─────────────────────────────────────
   void setPassword(String value) {
     _password = value;
     hasUppercase = Validators.hasUppercase(value);
@@ -51,9 +80,6 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Wipes the password fields and the four rule booleans.
-  /// Call after a successful register / reset so the next user
-  /// sees a fresh, unchecked password screen.
   void clearPasswords() {
     _password = '';
     _confirmPassword = '';
@@ -72,7 +98,7 @@ class AuthViewModel extends ChangeNotifier {
 
   bool get canSubmitPassword => isPasswordValid && isConfirmPasswordValid;
 
-  // ── OTP ──────────────────────────────────────────
+  // ── OTP ─────────────────────────────────────────
   Future<bool> sendOtp(String email) =>
       _run(() => _repo.sendOtp(email), startTimer: true);
 
@@ -99,7 +125,30 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // ── Register / Login / Reset ─────────────────────
+  // ── Login ───────────────────────────────────────
+  Future<bool> login(String email, String password) async {
+    final ok = await _run(() => _repo.login(email: email, password: password));
+    if (ok) {
+      _isLoggedIn = true;
+      notifyListeners();  // AuthGate reacts instantly
+    }
+    return ok;
+  }
+
+  // ── Logout ──────────────────────────────────────
+  Future<void> logout() async {
+    isLoading = true;
+    notifyListeners();
+    try {
+      await _repo.logout();
+    } finally {
+      _isLoggedIn = false;
+      _resetState();
+      notifyListeners();  // AuthGate reacts instantly
+    }
+  }
+
+  // ── Register / Reset ────────────────────────────
   Future<bool> register() async {
     if (!canSubmitPassword || verifiedEmail == null) return false;
     return _run(() => _repo.register(
@@ -118,20 +167,7 @@ class AuthViewModel extends ChangeNotifier {
         ));
   }
 
-  Future<bool> login(String email, String password) =>
-      _run(() => _repo.login(email: email, password: password));
-
-  Future<void> logout() async {
-    isLoading = true;
-    notifyListeners();
-    try {
-      await _repo.logout();
-    } finally {
-      _resetState();
-    }
-  }
-
-  // ── Timer ────────────────────────────────────────
+  // ── Timer ───────────────────────────────────────
   void startOtpTimer() {
     _timer?.cancel();
     secondsLeft = 60;
@@ -146,7 +182,7 @@ class AuthViewModel extends ChangeNotifier {
     });
   }
 
-  // ── Helpers ──────────────────────────────────────
+  // ── Helpers ─────────────────────────────────────
   Future<bool> _run(
     Future<dynamic> Function() op, {
     bool startTimer = false,
@@ -173,13 +209,8 @@ class AuthViewModel extends ChangeNotifier {
     verifiedEmail = null;
     _password = '';
     _confirmPassword = '';
-    hasUppercase = false;
-    hasNumber = false;
-    hasSpecial = false;
-    hasMinLength = false;
     flow = AuthFlow.register;
     isLoading = false;
-    notifyListeners();
   }
 
   @override

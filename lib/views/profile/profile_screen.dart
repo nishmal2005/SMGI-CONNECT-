@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/viewmodels/profile_viewmodel.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../viewmodels/profile_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/back_app_bar.dart';
 import 'account_details_screen.dart';
 import '../settings/settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileViewModel>().load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,97 +36,90 @@ class ProfileScreen extends StatelessWidget {
         preferredSize: Size.fromHeight(AppSizes.appBarHeight),
         child: const BackAppBar(title: 'Profile'),
       ),
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSizes.paddingLarge,
-            vertical: AppSizes.padding,
-          ),
-          child: Column(
-            children: [
-              // ── Avatar card ────────────────────────
-              Container(
-                height: 90.h,
-                margin: EdgeInsets.only(top: 20.h, bottom: 20.h),
-                padding: EdgeInsets.symmetric(horizontal: 14.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    _Avatar(image: vm.avatar),
-                    SizedBox(width: 14.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            vm.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.black,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            vm.course,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.condition,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.paddingLarge,
+          vertical: AppSizes.padding,
+        ),
+        child: Column(
+          children: [
+            // ── Avatar card ────────────────────────
+            Container(
+              height: 90.h,
+              margin: EdgeInsets.only(top: 20.h, bottom: 20.h),
+              padding: EdgeInsets.symmetric(horizontal: 14.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
+              child: Row(
+                children: [
+                  _Avatar(image: vm.avatar),
+                  SizedBox(width: 14.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          vm.name.isEmpty ? '—' : vm.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.black,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          vm.course.isEmpty ? '—' : vm.course,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.condition,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-              // ── Tiles ──────────────────────────────
-              _Tile(
-                title: 'My Account',
-                isFirst: true,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AccountDetailsScreen(),
-                    ),
-                  );
-                },
+            // ── Tiles ──────────────────────────────
+            _Tile(
+              title: 'My Account',
+              isFirst: true,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AccountDetailsScreen(),
+                ),
               ),
-              _Tile(
-                title: 'Settings',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SettingsScreen(),
-                    ),
-                  );
-                },
+            ),
+            _Tile(
+              title: 'Settings',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
               ),
-              _Tile(
-                title: 'Help',
-                isLast: true,
-                onTap: () {
-                  // TODO: push HelpScreen
-                },
-              ),
-            ],
-          ),
+            ),
+            _Tile(
+              title: 'Help',
+              isLast: true,
+              onTap: () {
+                // TODO: push HelpScreen
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -125,7 +131,7 @@ class ProfileScreen extends StatelessWidget {
 // ─────────────────────────────────────────────────────
 
 class _Avatar extends StatelessWidget {
-  final dynamic image; // File? — typed `dynamic` to avoid importing dart:io
+  final dynamic image;
   const _Avatar({this.image});
 
   @override
@@ -148,7 +154,14 @@ class _Avatar extends StatelessWidget {
       child: ClipOval(
         child: image != null
             ? Image.file(image as dynamic, fit: BoxFit.cover)
-            : Image.asset('assets/images/person.jpeg', fit: BoxFit.cover),
+            : Image.asset(
+                'assets/images/person.jpeg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.person,
+                  color: AppColors.primary,
+                ),
+              ),
       ),
     );
   }

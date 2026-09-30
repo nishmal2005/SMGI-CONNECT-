@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/views/payments/onboarding/onboarding_screen.dart';
+import 'package:smgi.connect/views/onboarding/onboarding_screen.dart';
 
 import 'core/theme/app_theme.dart';
 

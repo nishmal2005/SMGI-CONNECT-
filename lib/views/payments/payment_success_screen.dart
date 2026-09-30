@@ -1,17 +1,50 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
 
+import '../../core/constants/app_text_styles.dart';
+import '../../widgets/gap.dart';
+import '../downloads/downloads_screen.dart';
 
-class PaymentSuccessScreen extends StatelessWidget {
+class PaymentSuccessScreen extends StatefulWidget {
   final String? paymentId;
   final String? orderId;
+  final String? paymentMethod;
 
   const PaymentSuccessScreen({
     super.key,
     this.paymentId,
     this.orderId,
+    this.paymentMethod,
   });
+
+  @override
+  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
+}
+
+class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 3), _goToDownloads);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _goToDownloads() {
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const DownloadsScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,41 +68,45 @@ class PaymentSuccessScreen extends StatelessWidget {
                       width: 60.r,
                       height: 60.r,
                     ),
-                    SizedBox(height: 16.h),
+                    Gap(h: 16),
                     Text(
                       'Payment Successful',
                       style: AppTextStyles.headline,
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 4.h),
+                    Gap(h: 4),
                     Text(
                       'to Shri Maruthi Group',
                       style: AppTextStyles.captionone,
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 20.h),
+                    Gap(h: 20),
                     Text(
                       _formatNow(),
                       style: AppTextStyles.captionone,
                     ),
-                    SizedBox(height: 20.h),
-                    Text(
-                      'Payment Method: Axis Bank 5462',
-                      style: AppTextStyles.captionone,
-                    ),
-                    if (paymentId != null) ...[
-                      SizedBox(height: 8.h),
+                    if (widget.paymentMethod != null &&
+                        widget.paymentMethod!.isNotEmpty) ...[
+                      Gap(h: 12),
+                      Text(
+                        'Payment Method: ${widget.paymentMethod}',
+                        style: AppTextStyles.captionone,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                    if (widget.paymentId != null) ...[
+                      Gap(h: 8),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Flexible(
                             child: Text(
-                              'Payment ID: $paymentId',
+                              'Payment ID: ${widget.paymentId}',
                               style: AppTextStyles.captionone,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(width: 6.w),
+                          Gap(w: 6),
                           Icon(
                             Icons.copy,
                             size: 16.r,
@@ -78,10 +115,10 @@ class PaymentSuccessScreen extends StatelessWidget {
                         ],
                       ),
                     ],
-                    if (orderId != null) ...[
-                      SizedBox(height: 4.h),
+                    if (widget.orderId != null) ...[
+                      Gap(h: 4),
                       Text(
-                        'Order ID: $orderId',
+                        'Order ID: ${widget.orderId}',
                         style: AppTextStyles.captionone,
                       ),
                     ],
