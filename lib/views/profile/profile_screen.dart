@@ -123,9 +123,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-            _Tile(title: 'Help', isLast: true, onTap: () {
-           //   Navigator.push(context, MaterialPageRoute(builder: (_) => const  HelpSupportScreen() ));
-            }),
+          //   _Tile(title: 'Help', isLast: true, onTap: () {
+          //  //   Navigator.push(context, MaterialPageRoute(builder: (_) => const  HelpSupportScreen() ));
+          //   }),
           ],
         ),
       ),

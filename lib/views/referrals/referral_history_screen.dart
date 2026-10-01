@@ -58,6 +58,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
           Expanded(child: _buildBody(vm)),
         ],
       ),
+      )
     );
   }
 
