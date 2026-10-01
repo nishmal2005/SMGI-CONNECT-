@@ -12,6 +12,11 @@ class AuthViewModel extends ChangeNotifier {
   AuthViewModel(this._repo);
   final AuthRepository _repo;
 
+  /// Fired after logout completes (either user-initiated or forced
+  /// by the session-expiry handler). Wire this in main.dart to
+  /// navigate to LoginScreen.
+  void Function()? onLoggedOut;
+
   // ── Global auth state ───────────────────────────
   bool _isLoggedIn = false;
   bool _isBootstrapping = true;
@@ -21,8 +26,6 @@ class AuthViewModel extends ChangeNotifier {
   bool get isBootstrapping => _isBootstrapping;
   bool get hasSeenOnboarding => _hasSeenOnboarding;
 
-  /// Called once at app start. Reads the stored token and
-  /// the "onboarding seen" flag from SharedPreferences.
   Future<void> bootstrap() async {
     try {
       _isLoggedIn = await _repo.isLoggedIn();
@@ -130,12 +133,14 @@ class AuthViewModel extends ChangeNotifier {
     final ok = await _run(() => _repo.login(email: email, password: password));
     if (ok) {
       _isLoggedIn = true;
-      notifyListeners();  // AuthGate reacts instantly
+      notifyListeners();
     }
     return ok;
   }
 
   // ── Logout ──────────────────────────────────────
+  /// User-initiated logout. Calls the backend, clears tokens,
+  /// resets state, then fires [onLoggedOut] so the app can navigate.
   Future<void> logout() async {
     isLoading = true;
     notifyListeners();
@@ -144,8 +149,18 @@ class AuthViewModel extends ChangeNotifier {
     } finally {
       _isLoggedIn = false;
       _resetState();
-      notifyListeners();  // AuthGate reacts instantly
+      notifyListeners();
+      onLoggedOut?.call();
     }
+  }
+
+  /// Called by ApiClient when the session has expired. Same as
+  /// logout() but no backend call.
+  void forceLogout() {
+    _isLoggedIn = false;
+    _resetState();
+    notifyListeners();
+    onLoggedOut?.call();
   }
 
   // ── Register / Reset ────────────────────────────
@@ -209,6 +224,10 @@ class AuthViewModel extends ChangeNotifier {
     verifiedEmail = null;
     _password = '';
     _confirmPassword = '';
+    hasUppercase = false;
+    hasNumber = false;
+    hasSpecial = false;
+    hasMinLength = false;
     flow = AuthFlow.register;
     isLoading = false;
   }

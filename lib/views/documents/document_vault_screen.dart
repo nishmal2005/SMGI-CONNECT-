@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -9,10 +6,12 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../data/models/document_model.dart';
+import '../../viewmodels/aadhaar_viewmodel.dart';
 import '../../viewmodels/document_viewmodel.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/app_scaffold.dart';
-import '../../widgets/status_widget.dart';
+import '../admission/aadhaar_verification_screen.dart';
+import '../admission/upload_marks_card_screen.dart';
 
 class DocumentVaultScreen extends StatefulWidget {
   const DocumentVaultScreen({super.key});
@@ -25,39 +24,95 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DocumentViewModel>().load();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
   }
 
-  Future<void> _onReupload(DocumentModel doc) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-    );
-    if (result == null || result.files.single.path == null) return;
+  Future<void> _refresh() async {
+    await Future.wait([
+      context.read<AadhaarViewModel>().loadStatus(),
+      context.read<DocumentViewModel>().load(),
+    ]);
+  }
 
-    final file = File(result.files.single.path!);
-    if (!mounted) return;
-
-    final vm = context.read<DocumentViewModel>();
-    final ok = await vm.reupload(doc: doc, file: file);
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? '${doc.title} re-uploaded.'
-              : (vm.errorMessage ?? 'Re-upload failed.'),
+  // ── Reupload — Aadhaar (both sides) ────────────
+  Future<void> _onAadhaarReupload() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AadhaarVerificationScreen(
+          isReupload: true,
         ),
       ),
     );
+    if (!mounted) return;
+    await _refresh();
+  }
+
+  // ── Reupload — 10th Marks Card ──────────────────
+  Future<void> _onMarksCardReupload(DocumentModel doc) async {
+    if (doc.id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Cannot re-upload: this document is not linked to an id. '
+            'Please log out and back in, then try again.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UploadMarksCardScreen(
+          isReupload: true,
+          documentId: doc.id,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _refresh();
+  }
+
+  // ── Filters ─────────────────────────────────────
+  bool _isAadhaar(DocumentModel d) {
+    final t = '${d.documentType} ${d.title}'.toLowerCase();
+    return t.contains('aadhaar') || t.contains('aadhar');
+  }
+
+  bool _isMarksCard(DocumentModel d) {
+    final t = '${d.documentType} ${d.title}'.toLowerCase();
+    return t.contains('tenth') ||
+        t.contains('10th') ||
+        t.contains('marks_card') ||
+        t.contains('marks card');
+  }
+
+  DocumentModel? _firstWhere(
+    List<DocumentModel> list,
+    bool Function(DocumentModel) test,
+  ) {
+    for (final d in list) {
+      if (test(d)) return d;
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<DocumentViewModel>();
+    final aVm = context.watch<AadhaarViewModel>();
+    final docVm = context.watch<DocumentViewModel>();
+
+    final aadhaar = _firstWhere(docVm.items, _isAadhaar);
+    final marks   = _firstWhere(docVm.items, _isMarksCard);
+
+    final isUploading = aVm.uploading || docVm.isUploading;
+
+    final aadhaarStatus = aadhaar?.status ?? aVm.frontStatus;
+    final aadhaarCanReupload =
+        aadhaarStatus == DocumentStatus.reupload ||
+        aadhaarStatus == DocumentStatus.rejected;
 
     return AppScaffold(
       body: Column(
@@ -65,7 +120,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
           const HomeAppBar(),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: vm.load,
+              onRefresh: _refresh,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.symmetric(
@@ -83,7 +138,12 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                       ),
                     ),
                     SizedBox(height: 20.h),
-                    _buildBody(vm),
+                    _buildCard(
+                      aadhaarStatus: aadhaarStatus,
+                      aadhaarCanReupload: aadhaarCanReupload,
+                      marks: marks,
+                      isUploading: isUploading,
+                    ),
                     SizedBox(height: 32.h),
                   ],
                 ),
@@ -95,56 +155,32 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     );
   }
 
-  Widget _buildBody(DocumentViewModel vm) {
-    if (vm.isLoading && vm.items.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 48.h),
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (vm.errorMessage != null && vm.items.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(AppSizes.paddingLarge),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppSizes.radius),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              vm.errorMessage!,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.body2.copyWith(color: AppColors.error),
-            ),
-            SizedBox(height: 12.h),
-            TextButton(
-              onPressed: vm.load,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (vm.items.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(AppSizes.paddingLarge),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppSizes.radius),
-        ),
-        child: Center(
-          child: Text(
-            'No documents uploaded yet.',
-            style: AppTextStyles.body2.copyWith(color: AppColors.gray),
-          ),
-        ),
-      );
-    }
+  Widget _buildCard({
+    required DocumentStatus? aadhaarStatus,
+    required bool aadhaarCanReupload,
+    required DocumentModel? marks,
+    required bool isUploading,
+  }) {
+    final rows = <Widget>[
+      _DocRow(
+        title: 'Aadhaar Card',
+        status: aadhaarStatus,
+        canReupload: aadhaarCanReupload,
+        isUploading: isUploading,
+        onReupload: _onAadhaarReupload,
+      ),
+      _DocRow(
+        title: '10th Marks Card',
+        status: marks?.status,
+        canReupload: (marks?.status == DocumentStatus.reupload ||
+                marks?.status == DocumentStatus.rejected) &&
+            (marks?.id.isNotEmpty ?? false),
+        isUploading: isUploading,
+        onReupload: () {
+          if (marks != null) _onMarksCardReupload(marks);
+        },
+      ),
+    ];
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -160,16 +196,12 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         ],
       ),
       child: Column(
-        children: List.generate(vm.items.length, (index) {
+        children: List.generate(rows.length, (i) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index == vm.items.length - 1 ? 0 : 16.h,
+              bottom: i == rows.length - 1 ? 0 : 18.h,
             ),
-            child: _DocumentRow(
-              item: vm.items[index],
-              isUploading: vm.isUploading,
-              onReupload: _onReupload,
-            ),
+            child: rows[i],
           );
         }),
       ),
@@ -178,16 +210,20 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
 }
 
 // ─────────────────────────────────────────────────────
-// Row
+// One row
 // ─────────────────────────────────────────────────────
 
-class _DocumentRow extends StatelessWidget {
-  final DocumentModel item;
+class _DocRow extends StatelessWidget {
+  final String title;
+  final DocumentStatus? status;
+  final bool canReupload;
   final bool isUploading;
-  final ValueChanged<DocumentModel> onReupload;
+  final VoidCallback onReupload;
 
-  const _DocumentRow({
-    required this.item,
+  const _DocRow({
+    required this.title,
+    required this.status,
+    required this.canReupload,
     required this.isUploading,
     required this.onReupload,
   });
@@ -205,7 +241,7 @@ class _DocumentRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Image.asset(
-            item.image,
+            'assets/images/adharimg.png',
             fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => Icon(
               Icons.description_outlined,
@@ -217,7 +253,7 @@ class _DocumentRow extends StatelessWidget {
         SizedBox(width: 12.w),
         Expanded(
           child: Text(
-            item.title.isEmpty ? '—' : item.title,
+            title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.subtitle.copyWith(
@@ -226,17 +262,17 @@ class _DocumentRow extends StatelessWidget {
             ),
           ),
         ),
-        if (item.canReupload)
+        if (canReupload)
           SizedBox(
-            height: 28.h,
+            height: 30.h,
             child: ElevatedButton(
-              onPressed: isUploading ? null : () => onReupload(item),
+              onPressed: isUploading ? null : onReupload,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE74C3C),
                 disabledBackgroundColor:
                     const Color(0xFFE74C3C).withValues(alpha: 0.4),
                 elevation: 0,
-                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                padding: EdgeInsets.symmetric(horizontal: 14.w),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
@@ -246,7 +282,7 @@ class _DocumentRow extends StatelessWidget {
               child: Text(
                 isUploading ? 'Uploading…' : 'Reupload',
                 style: TextStyle(
-                  fontSize: 11.sp,
+                  fontSize: 12.sp,
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
@@ -254,8 +290,41 @@ class _DocumentRow extends StatelessWidget {
             ),
           )
         else
-          StatusWidget(status: item.status),
+          _StatusText(status: status),
       ],
     );
+  }
+}
+
+class _StatusText extends StatelessWidget {
+  final DocumentStatus? status;
+  const _StatusText({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final (text, color) = _describe(status);
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 13.sp,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+    );
+  }
+
+  (String, Color) _describe(DocumentStatus? s) {
+    switch (s) {
+      case DocumentStatus.verified:
+        return ('Verified', const Color(0xFF2ECC71));
+      case DocumentStatus.pending:
+        return ('Pending', const Color(0xFFF1C40F));
+      case DocumentStatus.rejected:
+        return ('Rejected', const Color(0xFFE74C3C));
+      case DocumentStatus.reupload:
+        return ('Reupload', const Color(0xFFE74C3C));
+      case null:
+        return ('Not Uploaded', AppColors.gray);
+    }
   }
 }

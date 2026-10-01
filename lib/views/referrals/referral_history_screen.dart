@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/data/models/referral_model.dart';
-import 'package:smgi.connect/viewmodels/referral_viewmodel.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../data/models/referral_model.dart';
+import '../../viewmodels/referral_viewmodel.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/app_scaffold.dart';
 
@@ -31,34 +31,31 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     final vm = context.watch<ReferralViewModel>();
 
     return AppScaffold(
-      padding: EdgeInsets.zero,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const HomeAppBar(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HomeAppBar(),
 
-            // ── Title ──────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSizes.padding,
-                12.h,
-                AppSizes.padding,
-                16.h,
-              ),
-              child: Text(
-                'Referral Code',
-                style: AppTextStyles.pageTitle.copyWith(
-                  fontSize: 22.sp,
-                  color: Colors.black87,
-                ),
+          // ── Title ──────────────────────────────
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSizes.padding,
+              12.h,
+              AppSizes.padding,
+              16.h,
+            ),
+            child: Text(
+              'Referral Code',
+              style: AppTextStyles.pageTitle.copyWith(
+                fontSize: 22.sp,
+                color: Colors.black87,
               ),
             ),
+          ),
 
-            // ── Body ───────────────────────────────
-            Expanded(child: _buildBody(vm)),
-          ],
-        ),
+          // ── Body ───────────────────────────────
+          Expanded(child: _buildBody(vm)),
+        ],
       ),
     );
   }
@@ -80,7 +77,10 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                 style: AppTextStyles.body2.copyWith(color: AppColors.error),
               ),
               SizedBox(height: 12.h),
-              TextButton(onPressed: vm.loadHistory, child: const Text('Retry')),
+              TextButton(
+                onPressed: vm.loadHistory,
+                child: const Text('Retry'),
+              ),
             ],
           ),
         ),
@@ -136,6 +136,7 @@ class _ReferralCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Header: code + status badge ─────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -162,8 +163,13 @@ class _ReferralCard extends StatelessWidget {
                     ),
                     SizedBox(height: 2.h),
                     Text(
-                      referral.referralCode,
-                      style: TextStyle(fontSize: 13.sp, color: Colors.black45),
+                      referral.referralCode.isEmpty
+                          ? '—'
+                          : referral.referralCode,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: Colors.black45,
+                      ),
                     ),
                   ],
                 ),
@@ -171,17 +177,39 @@ class _ReferralCard extends StatelessWidget {
               _StatusBadge(status: referral.status),
             ],
           ),
+
           SizedBox(height: 14.h),
-          _infoRow('Course:', referral.course),
+
+          // ── Course ──────────────────────────────
+          _infoRow(
+            'Course:',
+            referral.course.isEmpty ? '—' : referral.course,
+          ),
+
           SizedBox(height: 6.h),
-          _infoRow('Referred By:', referral.referrerName),
+
+          // ── Referred by ─────────────────────────
+          _infoRow(
+            'Referred By:',
+            _formatNameId(referral.referrerName, referral.referrerId),
+          ),
+
           SizedBox(height: 14.h),
           const Divider(height: 1),
           SizedBox(height: 14.h),
+
+          // ── Referrer details box ────────────────
           _ReferrerDetailsBox(referral: referral),
         ],
       ),
     );
+  }
+
+  String _formatNameId(String name, String id) {
+    if (name.isEmpty && id.isEmpty) return '—';
+    if (name.isEmpty) return 'ID: $id';
+    if (id.isEmpty) return name;
+    return '$name (ID: $id)';
   }
 
   Widget _infoRow(String label, String value) {
@@ -200,13 +228,19 @@ class _ReferralCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────
+// Status badge
+// ─────────────────────────────────────────────────────
+
 class _StatusBadge extends StatelessWidget {
   final String status;
   const _StatusBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final isApplied = status.toLowerCase() == 'applied';
+    final isApplied = status.toLowerCase() == 'applied' ||
+        status.toLowerCase() == 'valid' ||
+        status.toLowerCase() == 'active';
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -220,11 +254,19 @@ class _StatusBadge extends StatelessWidget {
         ),
         SizedBox(width: 4.w),
         if (isApplied)
-          Icon(Icons.check_circle, color: const Color(0xFF34A853), size: 16.r),
+          Icon(
+            Icons.check_circle,
+            color: const Color(0xFF34A853),
+            size: 16.r,
+          ),
       ],
     );
   }
 }
+
+// ─────────────────────────────────────────────────────
+// Referrer details box
+// ─────────────────────────────────────────────────────
 
 class _ReferrerDetailsBox extends StatelessWidget {
   final ReferralModel referral;
@@ -252,18 +294,57 @@ class _ReferrerDetailsBox extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10.h),
-          _detailRow(
-            'Name :',
-            '${referral.referrerName} '
-                '(ID: ${referral.referrerId})',
+
+          // ── Name (ID) ───────────────────────────
+          Text(
+            _formatNameId(referral.referrerName, referral.referrerId),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
-          SizedBox(height: 6.h),
-          _detailRow('Mobile :', referral.referrerMobile),
-          SizedBox(height: 6.h),
-          _detailRow('State :', referral.referrerState),
+
+          // ── Mobile ──────────────────────────────
+          if (referral.referrerMobile.isNotEmpty) ...[
+            SizedBox(height: 6.h),
+            _detailRow('Mobile', referral.referrerMobile),
+          ],
+
+          // ── State ───────────────────────────────
+          if (referral.referrerState.isNotEmpty) ...[
+            SizedBox(height: 6.h),
+            _detailRow('State', referral.referrerState),
+          ],
+
+          // ── Course (if provided alongside referrer) ──
+          if (referral.course.isNotEmpty) ...[
+            SizedBox(height: 6.h),
+            _detailRow('Course', referral.course),
+          ],
+
+          // ── Fallback when backend sent nothing ──
+          if (!referral.hasReferrer) ...[
+            SizedBox(height: 6.h),
+            Text(
+              'Referrer details are not available for this code.',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.black45,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _formatNameId(String name, String id) {
+    if (name.isEmpty && id.isEmpty) return '—';
+    if (name.isEmpty) return 'ID: $id';
+    if (id.isEmpty) return name;
+    return '$name (ID: $id)';
   }
 
   Widget _detailRow(String label, String value) {
@@ -271,9 +352,9 @@ class _ReferrerDetailsBox extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 70.w,
+          width: 60.w,
           child: Text(
-            label,
+            '$label :',
             style: TextStyle(fontSize: 13.sp, color: Colors.black45),
           ),
         ),

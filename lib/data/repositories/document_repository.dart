@@ -14,7 +14,7 @@ class DocumentRepository {
 
   /// POST /documents/  (multipart)
   ///
-  /// Fields:
+  /// fields:
   ///   document_type — tenth_marks_card | aadhaar_id_proof | other_required
   ///   file          — the actual document
   Future<ApiResponse> upload({

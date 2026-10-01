@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/views/onboarding/onboarding_screen.dart';
 
 import 'core/theme/app_theme.dart';
+import 'views/splash/splash_screen.dart';
+
+/// Global navigator key — used by the session-expiry handler in
+/// main.dart to redirect the user to the login screen when the
+/// refresh token can no longer be used.
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class SMGIApp extends StatelessWidget {
   const SMGIApp({super.key});
@@ -17,9 +22,10 @@ class SMGIApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'SMGI Connect',
         theme: AppTheme.light,
+        navigatorKey: navigatorKey, // ← add this
         home: child,
       ),
-      child: const OnboardingScreen(),
+      child: const SplashScreen(),
     );
   }
 }

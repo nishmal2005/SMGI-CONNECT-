@@ -1,35 +1,105 @@
 import 'package:flutter/foundation.dart';
-import 'package:smgi.connect/core/network/api_exception.dart';
-import 'package:smgi.connect/data/repositories/application_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/network/api_exception.dart';
+import '../data/repositories/application_repository.dart';
 
+enum AdmissionState { notStarted, inProgress, completed }
 
 class ApplicationViewModel extends ChangeNotifier {
   ApplicationViewModel(this._repo);
   final ApplicationRepository _repo;
 
-  // ── Collected data ──────────────────────────────
+  static const _kCompleted = 'admission_completed';
+  static const _kAppId     = 'application_id';
+
   String aadhaarNumber = '';
   String? aadhaarFrontPath;
   String? aadhaarBackPath;
 
   Map<String, dynamic> personal = const {};
 
-  String? discipline;   // kept for UI display only
-  String? program;      // becomes `course_name` in the payload
-  String? courseId;     // becomes `course` in the payload
+  String? discipline;
+  String? program;
+  String? courseId;
+  String? duration;
 
   String? marksCardPath;
   String? referralCode;
 
-  // ── Server state ────────────────────────────────
   bool isSubmitting = false;
   String? errorMessage;
   String? applicationId;
 
-  bool get hasApplication => applicationId != null;
+  String? status;
+  bool isLoadingStatus = false;
+  String? statusError;
 
-  // ── Setters ─────────────────────────────────────
+  bool _acknowledged = false;
+
+  // ── Public getters ─────────────────────────────
+  bool get hasApplication =>
+      applicationId != null && applicationId!.isNotEmpty;
+
+  bool get isAdmissionCompleted {
+    if (_acknowledged) return true;
+    final s = status?.toLowerCase();
+    return s == 'approved' ||
+        s == 'completed' ||
+        s == 'submitted' ||
+        s == 'admitted';
+  }
+
+  AdmissionState get admissionState {
+    if (isAdmissionCompleted) return AdmissionState.completed;
+    if (_hasStartedAnyStep)   return AdmissionState.inProgress;
+    return AdmissionState.notStarted;
+  }
+
+  bool get _hasStartedAnyStep =>
+      aadhaarNumber.isNotEmpty ||
+      aadhaarFrontPath != null ||
+      aadhaarBackPath != null ||
+      personal.isNotEmpty ||
+      courseId != null ||
+      marksCardPath != null ||
+      referralCode != null ||
+      hasApplication;
+
+  /// Which step "Continue" should open.
+  String get resumeStep {
+    if (aadhaarFrontPath == null || aadhaarBackPath == null) return 'aadhaar';
+    if (personal.isEmpty) return 'personal';
+    if (courseId == null) return 'course';
+    if (marksCardPath == null) return 'marks';
+    if (referralCode == null) return 'referral';
+    return 'payment';
+  }
+
+  // ── Persistence ─────────────────────────────────
+  Future<void> hydrate() async {
+    final prefs = await SharedPreferences.getInstance();
+    _acknowledged = prefs.getBool(_kCompleted) ?? false;
+    applicationId ??= prefs.getString(_kAppId);
+    notifyListeners();
+  }
+
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kCompleted, _acknowledged);
+    if (applicationId != null) {
+      await prefs.setString(_kAppId, applicationId!);
+    }
+  }
+
+  /// Call from the acknowledgment screen when the last step succeeds.
+  Future<void> markCompleted() async {
+    _acknowledged = true;
+    await _persist();
+    notifyListeners();
+  }
+
+  // ── Mutators ────────────────────────────────────
   void setAadhaar({
     required String number,
     String? frontPath,
@@ -50,10 +120,12 @@ class ApplicationViewModel extends ChangeNotifier {
     required String discipline,
     required String program,
     String? courseId,
+    String? duration,
   }) {
     this.discipline = discipline;
     this.program = program;
     this.courseId = courseId;
+    this.duration = duration;
     notifyListeners();
   }
 
@@ -67,9 +139,8 @@ class ApplicationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── POST /applications/ ─────────────────────────
+  // ── Network ─────────────────────────────────────
   Future<bool> submit() async {
-    // Course is required by the backend, and must be a valid int id.
     if (courseId == null || courseId!.isEmpty) {
       errorMessage = 'No course selected.';
       notifyListeners();
@@ -85,17 +156,19 @@ class ApplicationViewModel extends ChangeNotifier {
     isSubmitting = true;
     errorMessage = null;
     notifyListeners();
+
     try {
       final res = await _repo.create({
-        'course': courseInt,             // FK → int id
-        'course_name': program ?? '',    // CharField → display name
+        'course': courseInt,
+        'course_name': program ?? '',
         'aadhaar_number': aadhaarNumber,
         ...personal,
-        'referral_code': referralCode,   // may be null
+        'referral_code': referralCode,
       });
       final obj = res.object;
       applicationId = obj?['id']?.toString() ??
           obj?['application_id']?.toString();
+      await _persist();
       return applicationId != null;
     } on ApiException catch (e) {
       errorMessage = e.message;
@@ -106,7 +179,37 @@ class ApplicationViewModel extends ChangeNotifier {
     }
   }
 
-  void reset() {
+  Future<void> loadStatus() async {
+    if (isLoadingStatus) return;
+    isLoadingStatus = true;
+    notifyListeners();
+
+    try {
+      final res = await _repo.status();
+      final obj = res.object;
+      status = obj?['status']?.toString() ??
+          obj?['application_status']?.toString() ??
+          obj?['state']?.toString();
+
+      final id = obj?['id']?.toString() ??
+          obj?['application_id']?.toString();
+      if (id != null && id.isNotEmpty) applicationId = id;
+
+      final s = status?.toLowerCase();
+      if (s == 'approved' || s == 'completed' || s == 'admitted') {
+        _acknowledged = true;
+      }
+      await _persist();
+      statusError = null;
+    } on ApiException catch (e) {
+      if (e.statusCode != 404) statusError = e.message;
+    } finally {
+      isLoadingStatus = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> reset() async {
     aadhaarNumber = '';
     aadhaarFrontPath = null;
     aadhaarBackPath = null;
@@ -114,10 +217,19 @@ class ApplicationViewModel extends ChangeNotifier {
     discipline = null;
     program = null;
     courseId = null;
+    duration = null;
     marksCardPath = null;
     referralCode = null;
     applicationId = null;
     errorMessage = null;
+    status = null;
+    statusError = null;
+    _acknowledged = false;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kCompleted);
+    await prefs.remove(_kAppId);
+
     notifyListeners();
   }
 }

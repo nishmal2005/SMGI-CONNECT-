@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/viewmodels/auth_viewmodel.dart';
 
-
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/back_app_bar.dart';
 import '../../widgets/gap.dart';
 import '../../widgets/logout_dialog.dart';
 import '../../widgets/responsive_helper.dart';
+import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -26,85 +26,94 @@ class SettingsScreen extends StatelessWidget {
         preferredSize: Size.fromHeight(AppSizes.appBarHeight),
         child: const BackAppBar(title: 'Settings'),
       ),
-      body: SafeArea(
-        top: false,
-        child: Center(
-          child: Container(
-            width: Responsive.contentMaxWidth(context),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.paddingLarge,
-              vertical: AppSizes.padding,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Account card ───────────────────────
-                _Card(
-                  child: Column(
-                    children: [
-                      _Row(
-                        icon: Icons.key,
-                        title: 'Change Password',
-                        trailing: Icon(
-                          Icons.chevron_right,
-                          size: 20.r,
-                          color: AppColors.gray,
-                        ),
-                        onTap: () {
-                          // TODO: navigate to ChangePasswordScreen
-                          // Navigator.push(context, MaterialPageRoute(
-                          //   builder: (_) => const ChangePasswordScreen(),
-                          // ));
-                        },
+      body: Center(
+        child: Container(
+          width: Responsive.contentMaxWidth(context),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSizes.paddingLarge,
+            vertical: AppSizes.padding,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Account card ───────────────────────
+              _Card(
+                child: Column(
+                  children: [
+                    _Row(
+                      icon: Icons.key,
+                      title: 'Change Password',
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        size: 20.r,
+                        color: AppColors.gray,
                       ),
-                      Divider(
-                        height: 1,
-                        color: AppColors.lightGray,
-                        indent: 16.w,
-                        endIndent: 16.w,
-                      ),
-                      _Row(
-                        icon: Icons.phone_android,
-                        title: 'App version',
-                        trailing: Text(
-                          _appVersion,
-                          style: AppTextStyles.condition,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const Gap(h: 20),
-
-                // ── Logout card ────────────────────────
-                _Card(
-                  child: _Row(
-                    icon: Icons.logout,
-                    title: 'Logout',
-                    titleColor: const Color(0xFFE94B4B),
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      size: 20.r,
-                      color: const Color(0xFFE94B4B),
+                      onTap: () {
+                        // TODO: navigate to ChangePasswordScreen
+                      },
                     ),
-                    onTap: () {
-                      showLogoutDialog(
-                        context,
-                        onConfirmLogout: () {
-                          // Fire-and-forget: logout clears tokens and
-                          // resets auth state, then the app can redirect.
-                          context.read<AuthViewModel>().logout();
-                        },
-                      );
-                    },
-                  ),
+                    Divider(
+                      height: 1,
+                      color: AppColors.lightGray,
+                      indent: 16.w,
+                      endIndent: 16.w,
+                    ),
+                    _Row(
+                      icon: Icons.phone_android,
+                      title: 'App version',
+                      trailing: Text(
+                        _appVersion,
+                        style: AppTextStyles.condition,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              const Gap(h: 20),
+
+              // ── Logout card ────────────────────────
+              _Card(
+                child: _Row(
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  titleColor: const Color(0xFFE94B4B),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    size: 20.r,
+                    color: const Color(0xFFE94B4B),
+                  ),
+                  onTap: () => _onLogout(context),
+                ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────
+  // Logout — call backend, clear tokens, go to Login
+  // ─────────────────────────────────────────────────
+
+  Future<void> _onLogout(BuildContext context) async {
+    // Capture references before any await.
+    final nav = Navigator.of(context);
+    final auth = context.read<AuthViewModel>();
+
+    await showLogoutDialog(
+      context,
+      onConfirmLogout: () async {
+        // 1) Call the backend, clear tokens, reset VM state.
+        await auth.logout();
+
+        // 2) Direct navigation — does not rely on any callback.
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+        );
+      },
     );
   }
 }
