@@ -31,7 +31,6 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     final vm = context.watch<ReferralViewModel>();
 
     return AppScaffold(
-      padding: EdgeInsets.zero,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

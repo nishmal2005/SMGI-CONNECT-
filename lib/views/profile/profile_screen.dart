@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:smgi.connect/views/profile/help_screen.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
@@ -32,7 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final vm = context.watch<ProfileViewModel>();
 
     return AppScaffold(
-      padding: EdgeInsets.zero,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
           AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
-          horizontal: AppSizes.paddingLarge,
+          horizontal: AppSizes.padding,
           vertical: AppSizes.padding,
         ),
         child: Column(
@@ -123,12 +123,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-            _Tile(
-              title: 'Help',
-              isLast: true,
-              onTap: () {
-              },
-            ),
+            _Tile(title: 'Help', isLast: true, onTap: () {
+           //   Navigator.push(context, MaterialPageRoute(builder: (_) => const  HelpSupportScreen() ));
+            }),
           ],
         ),
       ),

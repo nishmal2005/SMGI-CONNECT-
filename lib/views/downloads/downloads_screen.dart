@@ -43,45 +43,53 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
     return AppScaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(AppSizes.appBarHeight),
-        child: const BackAppBar(title: 'Downloads'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(
-          AppSizes.paddingLarge,
-          AppSizes.paddingSmall,
-          AppSizes.padding,
-          AppSizes.paddingLarge,
+        preferredSize: Size.fromHeight(
+          AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header ────────────────────────────────
-            Text(
-              'Downloads',
-              style: AppTextStyles.pageTitle.copyWith(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: AppSizes.appBarHeight,
+            child: const BackAppBar(title: 'Downloads'),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSizes.paddingLarge,
+            AppSizes.paddingSmall,
+            AppSizes.padding,
+            AppSizes.paddingLarge,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header ────────────────────────────────
+              Text(
+                'Downloads',
+                style: AppTextStyles.pageTitle.copyWith(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            Gap(h: 5),
-            Text(
-              'Acknowledgements & Forms related to your\n'
-              'admission process.',
-              style: AppTextStyles.condition.copyWith(fontSize: 14.sp),
-            ),
-            Gap(h: 12),
+              Gap(h: 5),
+              Text(
+                'Acknowledgements & Forms related to your\n'
+                'admission process.',
+                style: AppTextStyles.condition.copyWith(fontSize: 14.sp),
+              ),
+              Gap(h: 12),
 
-            // ── List ──────────────────────────────────
-            Expanded(child: _buildBody(vm)),
+              // ── List ──────────────────────────────────
+              Expanded(child: _buildBody(vm)),
 
-            // ── Done ──────────────────────────────────
-            Gap(h: 16),
-            GradientButton(
-              text: 'Done',
-              onTap: _onDone,
-            ),
-          ],
+              // ── Done ──────────────────────────────────
+              Gap(h: 16),
+              GradientButton(text: 'Done', onTap: _onDone),
+            ],
+          ),
         ),
       ),
     );
@@ -104,10 +112,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                 style: AppTextStyles.body2.copyWith(color: AppColors.error),
               ),
               Gap(h: 12),
-              TextButton(
-                onPressed: vm.load,
-                child: const Text('Retry'),
-              ),
+              TextButton(onPressed: vm.load, child: const Text('Retry')),
             ],
           ),
         ),
@@ -144,15 +149,15 @@ class _DownloadCard extends StatelessWidget {
   void _onDownload(BuildContext context) {
     final url = item.fileUrl;
     if (url == null || url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Document not available.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Document not available.')));
       return;
     }
     // TODO: launch with url_launcher.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Opening: $url')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Opening: $url')));
   }
 
   @override
@@ -183,11 +188,7 @@ class _DownloadCard extends StatelessWidget {
               color: AppColors.black,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.description,
-              color: AppColors.accent,
-              size: 17.r,
-            ),
+            child: Icon(Icons.description, color: AppColors.accent, size: 17.r),
           ),
           Gap(w: 8),
 

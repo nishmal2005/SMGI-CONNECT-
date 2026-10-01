@@ -5,7 +5,7 @@ import 'package:smgi.connect/core/constants/app_colors.dart';
 import 'package:smgi.connect/core/constants/app_sizes.dart';
 import 'package:smgi.connect/core/constants/app_text_styles.dart';
 import 'package:smgi.connect/viewmodels/auth_viewmodel.dart';
-
+import 'package:smgi.connect/views/auth/forgot_password_screen.dart';
 
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/back_app_bar.dart';
@@ -23,8 +23,16 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(AppSizes.appBarHeight),
-        child: const BackAppBar(title: 'Settings'),
+        preferredSize: Size.fromHeight(
+          AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: AppSizes.appBarHeight,
+            child: const BackAppBar(title: 'Settings'),
+          ),
+        ),
       ),
       body: SafeArea(
         top: false,
@@ -51,10 +59,12 @@ class SettingsScreen extends StatelessWidget {
                           color: AppColors.gray,
                         ),
                         onTap: () {
-                          // TODO: navigate to ChangePasswordScreen
-                          // Navigator.push(context, MaterialPageRoute(
-                          //   builder: (_) => const ChangePasswordScreen(),
-                          // ));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ForgotPasswordScreen(),
+                            ),
+                          );
                         },
                       ),
                       Divider(
@@ -157,10 +167,7 @@ class _Row extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSizes.radius),
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 14.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         child: Row(
           children: [
             Icon(icon, size: 18.r, color: titleColor),

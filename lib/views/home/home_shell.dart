@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smgi.connect/core/constants/app_colors.dart';
+import 'package:smgi.connect/core/constants/app_assets.dart';
 import 'package:smgi.connect/widgets/nav_item.dart';
 
 import '../documents/document_vault_screen.dart';
@@ -20,11 +21,11 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  static const _icons = <IconData>[
-    Icons.home,
-    Icons.description,
-    Icons.credit_card,
-    Icons.person,
+  static const _icons = <String>[
+    AppAssets.homeIcon,
+    AppAssets.fileIcon,
+    AppAssets.creditCardIcon,
+    AppAssets.handshakeIcon,
   ];
 
   static const _pages = <Widget>[
@@ -71,13 +72,18 @@ class _HomeShellState extends State<HomeShell> {
               ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
                 _icons.length,
-                (i) => NavItem(
-                  icon: _icons[i],
-                  active: _index == i,
-                  onTap: () => setState(() => _index = i),
+                (i) => Row(
+                  children: [
+                    NavItem(
+                      assetPath: _icons[i],
+                      active: _index == i,
+                      onTap: () => setState(() => _index = i),
+                    ),
+                    if (i < _icons.length - 1) SizedBox(width: 8.w),
+                  ],
                 ),
               ),
             ),

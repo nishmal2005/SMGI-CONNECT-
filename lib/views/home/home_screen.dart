@@ -18,14 +18,18 @@ class HomeScreen extends StatelessWidget {
       padding: EdgeInsets.zero,
       body: Column(
         children: [
-          const HomeAppBar(),
+          // ── App bar (padded) ───────────────
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
+            child: const HomeAppBar(),
+          ),
 
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Banner ─────────────────────────
+                  // ── Banner (no padding) ────────
                   Image.asset(
                     'assets/images/homebanner.png',
                     width: double.infinity,
@@ -33,12 +37,13 @@ class HomeScreen extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
 
-                  // ── Content ────────────────────────
+                  // ── Content (padded) ───────────
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Gap(h: 16),
                         Text(
                           'Hello, there!',
                           style: AppTextStyles.body.copyWith(
