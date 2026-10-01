@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/api_endpoints.dart';
+import '../utils/image_compress.dart';
 import 'api_exception.dart';
 
 class ApiClient {
@@ -13,11 +14,17 @@ class ApiClient {
 
   final http.Client _client;
 
-  static const Duration _timeout = Duration(seconds: 30);
+  static const Duration _timeout = Duration(seconds: 60);
   static const String _accessKey = 'access_token';
   static const String _refreshKey = 'refresh_token';
 
   Future<bool>? _refreshing;
+
+  /// Fired once when the session expires and cannot be refreshed.
+  /// Wire this in main.dart to log the user out.
+  void Function()? onSessionExpired;
+
+  bool _sessionExpiredFired = false;
 
   // ── Public API ───────────────────────────────────
 
@@ -58,6 +65,17 @@ class ApiClient {
     bool authenticated = true,
     String method = 'POST',
   }) async {
+    if (authenticated) {
+      final token = await accessToken;
+      if (token == null || token.isEmpty) {
+        _fireSessionExpired();
+        throw const ApiException(
+          'Session expired. Please log in again.',
+          statusCode: 401,
+        );
+      }
+    }
+
     final uri = Uri.parse('${ApiEndpoints.baseUrl}$path');
     final stopwatch = Stopwatch()..start();
 
@@ -75,15 +93,30 @@ class ApiClient {
       request.fields.addAll(fields);
 
       for (final entry in files.entries) {
-        final file = entry.value;
-        final exists = await file.exists();
+        final original = entry.value;
+        final exists = await original.exists();
         if (!exists) {
-          throw ApiException('File "${entry.value.path}" no longer exists.');
+          throw ApiException(
+            'File "${original.path}" no longer exists.',
+          );
         }
-        final size = await file.length();
-        if (size == 0) {
+        final originalSize = await original.length();
+        if (originalSize == 0) {
           throw ApiException('File for "${entry.key}" is empty.');
         }
+
+        // ── Auto-compress before upload ──────────────
+        final file = await compressForUpload(original);
+        final finalSize = await file.length();
+
+        if (kDebugMode) {
+          debugPrint(
+            '[UPLOAD] ${entry.key}: '
+            '${originalSize ~/ 1024} KB → ${finalSize ~/ 1024} KB',
+          );
+        }
+        // ─────────────────────────────────────────────
+
         request.files.add(
           await http.MultipartFile.fromPath(entry.key, file.path),
         );
@@ -99,7 +132,8 @@ class ApiClient {
         }
         for (final entry in files.entries) {
           final size = await entry.value.length();
-          final name = entry.value.path.split(Platform.pathSeparator).last;
+          final name =
+              entry.value.path.split(Platform.pathSeparator).last;
           debugPrint(
             '$_dim  file[${entry.key}]: $name ($size bytes)$_reset',
           );
@@ -131,6 +165,7 @@ class ApiClient {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessKey, access);
     await prefs.setString(_refreshKey, refresh);
+    _sessionExpiredFired = false;
     if (kDebugMode) {
       debugPrint(
         '$_green✓ tokens saved: access len=${access.length} '
@@ -163,10 +198,15 @@ class ApiClient {
     return prefs.getString(_refreshKey);
   }
 
-  /// True if an access token is stored.
   Future<bool> get isLoggedIn async {
     final token = await accessToken;
     return token != null && token.isNotEmpty;
+  }
+
+  void _fireSessionExpired() {
+    if (_sessionExpiredFired) return;
+    _sessionExpiredFired = true;
+    onSessionExpired?.call();
   }
 
   // ── Core ─────────────────────────────────────────
@@ -179,6 +219,17 @@ class ApiClient {
     bool authenticated = true,
     bool retryOnUnauthorized = true,
   }) async {
+    if (authenticated) {
+      final token = await accessToken;
+      if (token == null || token.isEmpty) {
+        _fireSessionExpired();
+        throw const ApiException(
+          'Session expired. Please log in again.',
+          statusCode: 401,
+        );
+      }
+    }
+
     final uri = Uri.parse('${ApiEndpoints.baseUrl}$path')
         .replace(queryParameters: query);
     final headers = await _headers(authenticated);
@@ -195,12 +246,25 @@ class ApiClient {
           authenticated &&
           retryOnUnauthorized) {
         stopwatch.stop();
-        _logResponse(method, uri, response, stopwatch.elapsedMilliseconds);
+        _logResponse(
+          method,
+          uri,
+          response,
+          stopwatch.elapsedMilliseconds,
+        );
 
         final refreshed = await _refreshAccessToken();
         if (!refreshed) {
-          await clearTokens();
-          throw ApiException(
+          // ── Fire cleanup + event exactly once ──────────
+          // Concurrent requests all hit this branch simultaneously.
+          // Only the first one clears tokens and fires the event.
+          if (!_sessionExpiredFired) {
+            await clearTokens();
+            _fireSessionExpired();
+          }
+          // ──────────────────────────────────────────────
+
+          throw const ApiException(
             'Session expired. Please log in again.',
             statusCode: 401,
           );
@@ -281,7 +345,9 @@ class ApiClient {
 
     try {
       if (kDebugMode) {
-        debugPrint('$_cyan→ POST $_reset$uri $_dim(refresh token)$_reset');
+        debugPrint(
+          '$_cyan→ POST $_reset$uri $_dim(refresh token)$_reset',
+        );
       }
 
       final response = await _client
@@ -353,7 +419,10 @@ class ApiClient {
       final detail = data['error'] ??
           data['detail'] ??
           data['message'] ??
-          data.values.firstWhere((v) => v != null, orElse: () => null);
+          data.values.firstWhere(
+            (v) => v != null,
+            orElse: () => null,
+          );
       if (detail is List && detail.isNotEmpty) {
         return detail.first.toString();
       }

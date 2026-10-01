@@ -8,9 +8,13 @@ class AadhaarRepository {
   AadhaarRepository(this._client);
   final ApiClient _client;
 
-  /// POST /aadhaar/upload/
+  /// GET /aadhaar/ — current Aadhaar status.
+  Future<ApiResponse> status() async =>
+      ApiResponse(await _client.get(ApiEndpoints.aadhaar));
+
+  /// POST /aadhaar/upload/  (multipart)
   ///
-  /// Fields:
+  /// fields:
   ///   aadhaar_number — 12 digits
   ///   aadhaar_front  — front image
   ///   aadhaar_back   — back image
@@ -30,7 +34,7 @@ class AadhaarRepository {
 
   /// PATCH /aadhaar/ — re-upload one side.
   ///
-  /// Fields:
+  /// fields:
   ///   side — "front" or "back"
   ///   file — the new image
   Future<ApiResponse> reuploadSide({
@@ -38,7 +42,7 @@ class AadhaarRepository {
     required File file,
   }) async =>
       ApiResponse(await _client.multipart(
-        ApiEndpoints.aadhaarReupload,
+        ApiEndpoints.aadhaar,
         fields: {'side': side},
         files: {'file': file},
         method: 'PATCH',

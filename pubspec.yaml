@@ -20,7 +20,12 @@ dependencies:
   file_picker: ^10.3.8
   mobile_scanner: ^5.2.3
   flutter_screenutil: ^5.9.3
+<<<<<<< HEAD
   flutter_svg: ^2.0.17
+=======
+  flutter_image_compress: ^2.5.1
+  path_provider: ^2.1.6
+>>>>>>> 8bb2989ef30e63080ba6cb0b6671681b06b68b68
 
 dev_dependencies:
   flutter_test:

@@ -12,6 +12,7 @@ import '../../widgets/back_app_bar.dart';
 import '../../widgets/gap.dart';
 import '../../widgets/logout_dialog.dart';
 import '../../widgets/responsive_helper.dart';
+import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -85,36 +86,50 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
 
-                const Gap(h: 20),
+              const Gap(h: 20),
 
-                // ── Logout card ────────────────────────
-                _Card(
-                  child: _Row(
-                    icon: Icons.logout,
-                    title: 'Logout',
-                    titleColor: const Color(0xFFE94B4B),
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      size: 20.r,
-                      color: const Color(0xFFE94B4B),
-                    ),
-                    onTap: () {
-                      showLogoutDialog(
-                        context,
-                        onConfirmLogout: () {
-                          // Fire-and-forget: logout clears tokens and
-                          // resets auth state, then the app can redirect.
-                          context.read<AuthViewModel>().logout();
-                        },
-                      );
-                    },
+              // ── Logout card ────────────────────────
+              _Card(
+                child: _Row(
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  titleColor: const Color(0xFFE94B4B),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    size: 20.r,
+                    color: const Color(0xFFE94B4B),
                   ),
+                  onTap: () => _onLogout(context),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────
+  // Logout — call backend, clear tokens, go to Login
+  // ─────────────────────────────────────────────────
+
+  Future<void> _onLogout(BuildContext context) async {
+    // Capture references before any await.
+    final nav = Navigator.of(context);
+    final auth = context.read<AuthViewModel>();
+
+    await showLogoutDialog(
+      context,
+      onConfirmLogout: () async {
+        // 1) Call the backend, clear tokens, reset VM state.
+        await auth.logout();
+
+        // 2) Direct navigation — does not rely on any callback.
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+        );
+      },
     );
   }
 }

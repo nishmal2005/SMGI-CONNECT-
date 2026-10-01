@@ -29,10 +29,31 @@ import 'viewmodels/personal_details_viewmodel.dart';
 import 'viewmodels/profile_viewmodel.dart';
 import 'viewmodels/referral_viewmodel.dart';
 
+// ── Screens ──────────────────────────────────────────
+import 'views/auth/login_screen.dart';
+
 void main() {
-  ApiEndpoints.validate();   // fail fast if baseUrl is malformed
+  ApiEndpoints.validate();
 
   final apiClient = ApiClient();
+  final authVm = AuthViewModel(AuthRepository(apiClient));
+
+  /// Push the LoginScreen and wipe the navigation stack.
+  void goToLogin() {
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
+
+  // Session expired → logout and redirect.
+  apiClient.onSessionExpired = () {
+    authVm.forceLogout();
+    // forceLogout fires onLoggedOut which navigates.
+  };
+
+  // Logout complete → redirect.
+  authVm.onLoggedOut = goToLogin;
 
   runApp(
     MultiProvider(
@@ -52,9 +73,7 @@ void main() {
         Provider(create: (_) => ReferralRepository(apiClient)),
 
         // ── ViewModels ───────────────────────────────
-        ChangeNotifierProvider(
-          create: (c) => AuthViewModel(c.read<AuthRepository>()),
-        ),
+        ChangeNotifierProvider.value(value: authVm),
         ChangeNotifierProvider(
           create: (c) => AadhaarViewModel(c.read<AadhaarRepository>()),
         ),

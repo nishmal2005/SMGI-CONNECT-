@@ -1,4 +1,8 @@
-enum DocumentStatus { verified, pending, rejected, reupload }
+import 'document_status.dart';
+
+// Re-export so existing imports of document_model.dart keep
+// seeing DocumentStatus / DocumentStatusX / parseDocumentStatus.
+export 'document_status.dart';
 
 class DocumentModel {
   final String id;
@@ -17,17 +21,13 @@ class DocumentModel {
     this.fileUrl,
   });
 
-  bool get canReupload =>
-      status == DocumentStatus.reupload ||
-      status == DocumentStatus.rejected;
+  bool get canReupload => status.canReupload;
 
-  /// True for rows the backend identifies as Aadhaar.
   bool get isAadhaar {
     final t = (documentType.isEmpty ? title : documentType).toLowerCase();
     return t.contains('aadhaar') || t.contains('aadhar');
   }
 
-  /// "front" | "back" | "" — derived from title/type when present.
   String get side {
     final t = '${documentType.isEmpty ? title : documentType}'.toLowerCase();
     if (t.contains('front')) return 'front';
@@ -35,37 +35,42 @@ class DocumentModel {
     return '';
   }
 
+  DocumentModel copyWith({
+    String? id,
+    String? title,
+    String? documentType,
+    String? fileUrl,
+    String? image,
+    DocumentStatus? status,
+  }) =>
+      DocumentModel(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        documentType: documentType ?? this.documentType,
+        fileUrl: fileUrl ?? this.fileUrl,
+        image: image ?? this.image,
+        status: status ?? this.status,
+      );
+
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
-    final title = (json['name'] ?? json['title'] ?? '').toString();
-    final docType = (json['document_type'] ?? json['type'] ?? '').toString();
+    final root = json['data'] is Map
+        ? Map<String, dynamic>.from(json['data'] as Map)
+        : json;
+
+    final title = (root['name'] ?? root['title'] ?? '').toString();
+    final docType =
+        (root['document_type'] ?? root['type'] ?? '').toString();
 
     return DocumentModel(
-      id: json['id']?.toString() ?? '',
+      id: root['id']?.toString() ?? '',
       title: title.isEmpty ? docType : title,
       documentType: docType.isEmpty ? _slugFromTitle(title) : docType,
-      fileUrl: json['file_url']?.toString(),
-      image: json['image']?.toString() ?? _assetFor(title.isEmpty ? docType : title),
-      status: _statusFrom(json['status']?.toString()),
+      fileUrl: root['file_url']?.toString(),
+      image: root['image']?.toString() ??
+          _assetFor(title.isEmpty ? docType : title),
+      status: parseDocumentStatus(root['status']?.toString()) ??
+          DocumentStatus.pending,
     );
-  }
-
-  static DocumentStatus _statusFrom(String? v) {
-    switch (v?.toLowerCase().replaceAll('_', '')) {
-      case 'verified':
-      case 'approved':
-        return DocumentStatus.verified;
-      case 'rejected':
-        return DocumentStatus.rejected;
-      case 'reupload':
-      case 'reuploadrequired':
-      case 'reuploadneeded':
-        return DocumentStatus.reupload;
-      case 'pending':
-      case 'inreview':
-      case 'underreview':
-      default:
-        return DocumentStatus.pending;
-    }
   }
 
   static String _assetFor(String title) {

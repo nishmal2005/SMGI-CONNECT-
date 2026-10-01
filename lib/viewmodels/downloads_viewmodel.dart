@@ -9,6 +9,8 @@ class DownloadsViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   List<DownloadModel> items = const [];
+
+  /// GET /knowledge-downloads/
   Future<void> load() async {
     isLoading = true;
     errorMessage = null;
