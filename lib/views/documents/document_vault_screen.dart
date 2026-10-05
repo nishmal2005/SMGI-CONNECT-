@@ -6,7 +6,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../data/models/document_model.dart';
-import '../../viewmodels/aadhaar_viewmodel.dart';
 import '../../viewmodels/document_viewmodel.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/app_scaffold.dart';
@@ -24,23 +23,24 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      _refresh();
+    });
   }
 
   Future<void> _refresh() async {
-    await Future.wait([
-      context.read<AadhaarViewModel>().loadStatus(),
-      context.read<DocumentViewModel>().load(),
-    ]);
+    await context.read<DocumentViewModel>().load();
   }
 
-  // ── Reupload — Aadhaar (both sides) ────────────
-  Future<void> _onAadhaarReupload() async {
+  Future<void> _onAadhaarReupload(String side) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const AadhaarVerificationScreen(
+        builder: (_) => AadhaarVerificationScreen(
           isReupload: true,
+          reuploadSide: side,
         ),
       ),
     );
@@ -48,14 +48,12 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     await _refresh();
   }
 
-  // ── Reupload — 10th Marks Card ──────────────────
   Future<void> _onMarksCardReupload(DocumentModel doc) async {
     if (doc.id.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Cannot re-upload: this document is not linked to an id. '
-            'Please log out and back in, then try again.',
+            'Cannot re-upload: this document is not linked to an id.',
           ),
         ),
       );
@@ -76,19 +74,6 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   }
 
   // ── Filters ─────────────────────────────────────
-  bool _isAadhaar(DocumentModel d) {
-    final t = '${d.documentType} ${d.title}'.toLowerCase();
-    return t.contains('aadhaar') || t.contains('aadhar');
-  }
-
-  bool _isMarksCard(DocumentModel d) {
-    final t = '${d.documentType} ${d.title}'.toLowerCase();
-    return t.contains('tenth') ||
-        t.contains('10th') ||
-        t.contains('marks_card') ||
-        t.contains('marks card');
-  }
-
   DocumentModel? _firstWhere(
     List<DocumentModel> list,
     bool Function(DocumentModel) test,
@@ -99,20 +84,50 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     return null;
   }
 
+  bool _isAadhaarFront(DocumentModel d) {
+    final t = '${d.documentType} ${d.title}'.toLowerCase();
+    final aadhaar = t.contains('aadhaar') || t.contains('aadhar');
+    return aadhaar && t.contains('front');
+  }
+
+  bool _isAadhaarBack(DocumentModel d) {
+    final t = '${d.documentType} ${d.title}'.toLowerCase();
+    final aadhaar = t.contains('aadhaar') || t.contains('aadhar');
+    return aadhaar && t.contains('back');
+  }
+
+  /// Single combined Aadhaar row (backend today uses `aadhaar_id_proof`).
+  bool _isAadhaarCombined(DocumentModel d) {
+    final t = '${d.documentType} ${d.title}'.toLowerCase();
+    return (t.contains('aadhaar') || t.contains('aadhar')) &&
+        !t.contains('front') &&
+        !t.contains('back');
+  }
+
+  bool _isMarksCard(DocumentModel d) {
+    final t = '${d.documentType} ${d.title}'.toLowerCase();
+    return t.contains('tenth') ||
+        t.contains('10th') ||
+        t.contains('marks_card') ||
+        t.contains('marks card');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final aVm = context.watch<AadhaarViewModel>();
     final docVm = context.watch<DocumentViewModel>();
 
-    final aadhaar = _firstWhere(docVm.items, _isAadhaar);
-    final marks   = _firstWhere(docVm.items, _isMarksCard);
+    // ── Aadhaar: prefer the two-row split; fall back to the
+    //    single combined row the backend currently returns.
+    final aadhaarFront = _firstWhere(docVm.items, _isAadhaarFront);
+    final aadhaarBack  = _firstWhere(docVm.items, _isAadhaarBack);
+    final aadhaarCombined = _firstWhere(docVm.items, _isAadhaarCombined);
 
-    final isUploading = aVm.uploading || docVm.isUploading;
+    final frontStatus = aadhaarFront?.status ?? aadhaarCombined?.status;
+    final backStatus  = aadhaarBack?.status  ?? aadhaarCombined?.status;
 
-    final aadhaarStatus = aadhaar?.status ?? aVm.frontStatus;
-    final aadhaarCanReupload =
-        aadhaarStatus == DocumentStatus.reupload ||
-        aadhaarStatus == DocumentStatus.rejected;
+    final marksCard = _firstWhere(docVm.items, _isMarksCard);
+
+    final isUploading = docVm.isUploading;
 
     return AppScaffold(
       body: Column(
@@ -139,9 +154,9 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                     ),
                     SizedBox(height: 20.h),
                     _buildCard(
-                      aadhaarStatus: aadhaarStatus,
-                      aadhaarCanReupload: aadhaarCanReupload,
-                      marks: marks,
+                      frontStatus: frontStatus,
+                      backStatus: backStatus,
+                      marksCard: marksCard,
                       isUploading: isUploading,
                     ),
                     SizedBox(height: 32.h),
@@ -156,30 +171,45 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   }
 
   Widget _buildCard({
-    required DocumentStatus? aadhaarStatus,
-    required bool aadhaarCanReupload,
-    required DocumentModel? marks,
+    required DocumentStatus? frontStatus,
+    required DocumentStatus? backStatus,
+    required DocumentModel? marksCard,
     required bool isUploading,
   }) {
+    final frontCanReupload =
+        frontStatus == DocumentStatus.reupload ||
+        frontStatus == DocumentStatus.rejected;
+
+    final backCanReupload =
+        backStatus == DocumentStatus.reupload ||
+        backStatus == DocumentStatus.rejected;
+
     final rows = <Widget>[
       _DocRow(
-        title: 'Aadhaar Card',
-        status: aadhaarStatus,
-        canReupload: aadhaarCanReupload,
+        title: 'Aadhaar Front',
+        status: frontStatus,
+        canReupload: frontCanReupload,
         isUploading: isUploading,
-        onReupload: _onAadhaarReupload,
+        onReupload: () => _onAadhaarReupload('front'),
       ),
       _DocRow(
-        title: '10th Marks Card',
-        status: marks?.status,
-        canReupload: (marks?.status == DocumentStatus.reupload ||
-                marks?.status == DocumentStatus.rejected) &&
-            (marks?.id.isNotEmpty ?? false),
+        title: 'Aadhaar Back',
+        status: backStatus,
+        canReupload: backCanReupload,
         isUploading: isUploading,
-        onReupload: () {
-          if (marks != null) _onMarksCardReupload(marks);
-        },
+        onReupload: () => _onAadhaarReupload('back'),
       ),
+      if (marksCard != null)
+        _DocRow(
+          title: '10th Marks Card',
+          status: marksCard.status,
+          canReupload:
+              (marksCard.status == DocumentStatus.reupload ||
+                      marksCard.status == DocumentStatus.rejected) &&
+                  marksCard.id.isNotEmpty,
+          isUploading: isUploading,
+          onReupload: () => _onMarksCardReupload(marksCard),
+        ),
     ];
 
     return Container(

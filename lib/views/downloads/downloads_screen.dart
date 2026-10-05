@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
@@ -56,7 +57,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ────────────────────────────────
             Text(
               'Downloads',
               style: AppTextStyles.pageTitle.copyWith(
@@ -71,11 +71,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               style: AppTextStyles.condition.copyWith(fontSize: 14.sp),
             ),
             Gap(h: 12),
-
-            // ── List ──────────────────────────────────
             Expanded(child: _buildBody(vm)),
-
-            // ── Done ──────────────────────────────────
             Gap(h: 16),
             GradientButton(
               text: 'Done',
@@ -141,7 +137,7 @@ class _DownloadCard extends StatelessWidget {
   final DownloadModel item;
   const _DownloadCard({required this.item});
 
-  void _onDownload(BuildContext context) {
+  Future<void> _onDownload(BuildContext context) async {
     final url = item.fileUrl;
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -149,10 +145,32 @@ class _DownloadCard extends StatelessWidget {
       );
       return;
     }
-    // TODO: launch with url_launcher.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Opening: $url')),
-    );
+
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid document link.')),
+      );
+      return;
+    }
+
+    try {
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open document.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open document: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -175,7 +193,6 @@ class _DownloadCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Icon ─────────────────────────────
           Container(
             width: 32.r,
             height: 32.r,
@@ -190,8 +207,6 @@ class _DownloadCard extends StatelessWidget {
             ),
           ),
           Gap(w: 8),
-
-          // ── Content ──────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

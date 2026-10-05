@@ -52,7 +52,7 @@ class ApplicationViewModel extends ChangeNotifier {
 
   AdmissionState get admissionState {
     if (isAdmissionCompleted) return AdmissionState.completed;
-    if (_hasStartedAnyStep)   return AdmissionState.inProgress;
+    if (_hasStartedAnyStep) return AdmissionState.inProgress;
     return AdmissionState.notStarted;
   }
 
@@ -87,8 +87,11 @@ class ApplicationViewModel extends ChangeNotifier {
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kCompleted, _acknowledged);
-    if (applicationId != null) {
+
+    if (applicationId != null && applicationId!.isNotEmpty) {
       await prefs.setString(_kAppId, applicationId!);
+    } else {
+      await prefs.remove(_kAppId);
     }
   }
 
@@ -193,7 +196,12 @@ class ApplicationViewModel extends ChangeNotifier {
 
       final id = obj?['id']?.toString() ??
           obj?['application_id']?.toString();
-      if (id != null && id.isNotEmpty) applicationId = id;
+      if (id != null && id.isNotEmpty) {
+        applicationId = id;
+      } else {
+        // Server returned 200 but no id → treat as "no application".
+        applicationId = null;
+      }
 
       final s = status?.toLowerCase();
       if (s == 'approved' || s == 'completed' || s == 'admitted') {
@@ -202,7 +210,17 @@ class ApplicationViewModel extends ChangeNotifier {
       await _persist();
       statusError = null;
     } on ApiException catch (e) {
-      if (e.statusCode != 404) statusError = e.message;
+      if (e.statusCode == 404) {
+        // Server has no application for this user. Wipe the stale
+        // id and status so nothing downstream sends a bad id.
+        applicationId = null;
+        status = null;
+        _acknowledged = false;
+        await _persist();
+        statusError = null;
+      } else {
+        statusError = e.message;
+      }
     } finally {
       isLoadingStatus = false;
       notifyListeners();

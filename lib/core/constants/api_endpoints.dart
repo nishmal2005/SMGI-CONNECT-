@@ -30,13 +30,14 @@ class ApiEndpoints {
 
   static const String profile = '/profile/';
 
-  // ── Aadhaar ──────────────────────────────────────
-  /// POST — first-time upload: aadhaar_number, aadhaar_front, aadhaar_back
-  static const String aadhaarUpload = '/aadhaar/upload/';
+  // ── Aadhaar (split endpoints) ────────────────────
+  /// POST  — first upload: field `aadhaar_front`
+  /// PATCH — reupload:     field `aadhaar_front`
+  static const String aadhaarFrontUpload = '/aadhaar-front/upload/';
 
-  /// GET  — read current Aadhaar status
-  /// PATCH — re-upload one side: side, file
-  static const String aadhaar = '/aadhaar/';
+  /// POST  — first upload: field `aadhaar_back`
+  /// PATCH — reupload:     field `aadhaar_back`
+  static const String aadhaarBackUpload = '/aadhaar-back/upload/';
 
   // ── Courses ──────────────────────────────────────
   static const String courses = '/courses/';
@@ -56,12 +57,7 @@ class ApiEndpoints {
       '/applications/$id/admission-acknowledgment/';
 
   // ── Documents ────────────────────────────────────
-  /// GET  — list student documents
-  /// POST — upload: document_type, file
   static const String documents = '/documents/';
-
-  /// GET   — document details
-  /// PATCH — re-upload rejected: file only
   static String document(String id) => '/documents/$id/';
 
   // ── Referrals ────────────────────────────────────
@@ -69,12 +65,13 @@ class ApiEndpoints {
   static const String referralApply = '/referrals/apply/';
   static const String referralHistory = '/referrals/history/';
 
-  // ── Misc ─────────────────────────────────────────
   static const String notifications = '/notifications/';
   static const String paymentsHistory = '/payments/history/';
+
   static const String knowledgeDownloads = '/knowledge-downloads/';
   static String knowledgeDownload(String id) =>
       '/knowledge-downloads/$id/download/';
+
   static const String helpSupport = '/help-support/';
   static const String authTest = '/auth-test/';
 }

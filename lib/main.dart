@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smgi.connect/data/repositories/document_repository.dart';
 
 import 'app.dart';
 import 'core/constants/api_endpoints.dart';
@@ -10,7 +11,6 @@ import 'data/repositories/aadhaar_repository.dart';
 import 'data/repositories/application_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/course_repository.dart';
-import 'data/repositories/document_repository.dart';
 import 'data/repositories/notification_repository.dart';
 import 'data/repositories/payment_repository.dart';
 import 'data/repositories/profile_repository.dart';
@@ -110,3 +110,42 @@ void main() {
     ),
   );
 }
+
+// import 'package:flutter/material.dart';
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
+// import 'package:provider/provider.dart';
+// import 'package:smgi.connect/views/downloads/downloads_screen.dart';
+
+// import 'core/constants/api_endpoints.dart';
+// import 'core/network/api_client.dart';
+// import 'core/theme/app_theme.dart';
+// import 'data/repositories/notification_repository.dart';
+// import 'viewmodels/downloads_viewmodel.dart';
+
+// void main() {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   ApiEndpoints.validate();
+
+//   final apiClient = ApiClient();
+
+//   runApp(
+//     MultiProvider(
+//       providers: [
+//         Provider<ApiClient>.value(value: apiClient),
+//         Provider(create: (_) => NotificationRepository(apiClient)),
+//         ChangeNotifierProvider(
+//           create: (c) => DownloadsViewModel(c.read<NotificationRepository>()),
+//         ),
+//       ],
+//       child: ScreenUtilInit(
+//         designSize: const Size(390, 844),
+//         minTextAdapt: true,
+//         builder: (_, __) => MaterialApp(
+//           debugShowCheckedModeBanner: false,
+//           theme: AppTheme.light,
+//           home: const DownloadsScreen(),
+//         ),
+//       ),
+//     ),
+//   );
+// }

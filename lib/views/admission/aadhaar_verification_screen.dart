@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/utils/image_compress.dart';
+import '../../data/models/document_model.dart';
 import '../../viewmodels/aadhaar_viewmodel.dart';
 import '../../viewmodels/application_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
@@ -40,12 +42,8 @@ class AadhaarVerificationScreen extends StatefulWidget {
 class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
   late final TextEditingController _aadhaarController;
 
-  /// True once we've decided to show the reupload UI, either because
-  /// the caller said so (isReupload) or because the backend rejected
-  /// the POST with "use PATCH".
-  late bool _forceReupload;
+  bool _forceReupload = false;
 
-  // Local picks used in reupload mode.
   File? _newFront;
   File? _newBack;
 
@@ -70,7 +68,9 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result == null || result.files.single.path == null) return;
 
-    final file = File(result.files.single.path!);
+    final raw = File(result.files.single.path!);
+    if (!mounted) return;
+    final file = await compressForUpload(raw);
     if (!mounted) return;
 
     if (_forceReupload) {
@@ -87,13 +87,12 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     }
   }
 
-  // ── First-time submission ───────────────────────
+  // ── First-time upload ───────────────────────────
   Future<void> _submitFull(AadhaarViewModel vm) async {
     final ok = await vm.upload();
     if (!mounted) return;
 
     if (!ok) {
-      // Backend rejected the POST — the side(s) need PATCH.
       if (vm.needsReupload) {
         setState(() {
           _forceReupload = true;
@@ -106,7 +105,6 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
         );
         return;
       }
-
       _snack(vm.errorMessage ?? 'Upload failed.');
       return;
     }
@@ -123,18 +121,30 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     );
   }
 
-  // ── Reupload submission ─────────────────────────
-  Future<void> _submitReupload(
-    AadhaarViewModel vm, {
-    required bool frontNeeds,
-    required bool backNeeds,
-  }) async {
+  // ── Reupload one or both sides ──────────────────
+  Future<void> _submitReupload(AadhaarViewModel vm) async {
+    final forced = widget.reuploadSide; // 'front' | 'back' | null
+
+    // When the vault passes a specific side, honor it. Otherwise
+    // fall back to the VM's per-side flags (inline reupload case).
+    final frontNeeds = forced == 'front'
+        ? true
+        : forced == 'back'
+            ? false
+            : vm.frontNeedsReupload;
+
+    final backNeeds = forced == 'back'
+        ? true
+        : forced == 'front'
+            ? false
+            : vm.backNeedsReupload;
+
     if (frontNeeds) {
       if (_newFront == null) {
         _snack('Please pick a new Aadhaar Front image.');
         return;
       }
-      final ok = await vm.reuploadSide(side: 'front', file: _newFront!);
+      final ok = await vm.reuploadFront(file: _newFront!);
       if (!mounted || !ok) {
         _snack(vm.errorMessage ?? 'Front re-upload failed.');
         return;
@@ -146,7 +156,7 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
         _snack('Please pick a new Aadhaar Back image.');
         return;
       }
-      final ok = await vm.reuploadSide(side: 'back', file: _newBack!);
+      final ok = await vm.reuploadBack(file: _newBack!);
       if (!mounted || !ok) {
         _snack(vm.errorMessage ?? 'Back re-upload failed.');
         return;
@@ -219,10 +229,9 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
   Widget _buildReupload(AadhaarViewModel vm) {
     final forced = widget.reuploadSide; // 'front' | 'back' | null
 
-    // When this screen was opened from the vault (isReupload = true),
-    // we KNOW the backend flagged the Aadhaar. Trust the caller and
-    // always show the tiles — do NOT fall back to _buildFull based on
-    // the stale AadhaarViewModel cache.
+    // If the vault told us which side, honor that. Otherwise use
+    // the VM's flags. When opened via `isReupload: true` from the
+    // vault with no side specified, show both sides.
     final frontNeeds = forced == 'front'
         ? true
         : forced == 'back'
@@ -234,6 +243,8 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
         : forced == 'front'
             ? false
             : (widget.isReupload ? true : vm.backNeedsReupload);
+
+    if (!frontNeeds && !backNeeds) return _buildFull(vm);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,11 +290,7 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
         GradientButton(
           text: vm.uploading ? 'Uploading...' : 'Submit Re-upload',
           enabled: !vm.uploading,
-          onTap: () => _submitReupload(
-            vm,
-            frontNeeds: frontNeeds,
-            backNeeds: backNeeds,
-          ),
+          onTap: () => _submitReupload(vm),
         ),
         Gap(h: 16),
       ],
@@ -369,4 +376,4 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
       ],
     );
   }
-}
+} 

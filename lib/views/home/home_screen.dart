@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../viewmodels/application_viewmodel.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/gap.dart';
-import 'admission_card.dart';
+import '../../widgets/admission_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
