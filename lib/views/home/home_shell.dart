@@ -109,7 +109,7 @@ class _HomeShellState extends State<HomeShell> {
               ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
                 _icons.length,
                 (i) => NavItem(

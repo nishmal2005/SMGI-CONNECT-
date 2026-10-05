@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smgi.connect/core/constants/app_colors.dart';
 
-
 class NavItem extends StatelessWidget {
-  final IconData icon;
+  final String assetPath;
   final bool active;
   final VoidCallback onTap;
 
   const NavItem({
     super.key,
-    required this.icon,
+    required this.assetPath,
     required this.onTap,
     this.active = false,
   });
@@ -23,7 +23,7 @@ class NavItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         height: 56.h,
-        width: 66.w,
+        width: 70.w,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: active
@@ -31,12 +31,14 @@ class NavItem extends StatelessWidget {
               : Colors.transparent,
           borderRadius: BorderRadius.circular(30.r),
         ),
-        child: Icon(
-          icon,
-          size: 24.r,
-          color: active
-              ? AppColors.navSelected
-              : AppColors.navNotSelected,
+        child: SvgPicture.asset(
+          assetPath,
+          width: 25.r,
+          height: 25.r,
+          colorFilter: ColorFilter.mode(
+            active ? AppColors.navSelected : AppColors.navNotSelected,
+            BlendMode.srcIn,
+          ),
         ),
       ),
     );

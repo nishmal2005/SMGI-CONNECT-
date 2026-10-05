@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:smgi.connect/core/constants/app_colors.dart';
+import 'package:smgi.connect/core/constants/app_sizes.dart';
+import 'package:smgi.connect/core/constants/app_text_styles.dart';
+import 'package:smgi.connect/viewmodels/auth_viewmodel.dart';
+import 'package:smgi.connect/views/auth/forgot_password_screen.dart';
 
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_sizes.dart';
-import '../../core/constants/app_text_styles.dart';
-import '../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/back_app_bar.dart';
 import '../../widgets/gap.dart';
@@ -23,52 +24,67 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(AppSizes.appBarHeight),
-        child: const BackAppBar(title: 'Settings'),
-      ),
-      body: Center(
-        child: Container(
-          width: Responsive.contentMaxWidth(context),
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSizes.paddingLarge,
-            vertical: AppSizes.padding,
+        preferredSize: Size.fromHeight(
+          AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: AppSizes.appBarHeight,
+            child: const BackAppBar(title: 'Settings'),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Account card ───────────────────────
-              _Card(
-                child: Column(
-                  children: [
-                    _Row(
-                      icon: Icons.key,
-                      title: 'Change Password',
-                      trailing: Icon(
-                        Icons.chevron_right,
-                        size: 20.r,
-                        color: AppColors.gray,
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: Center(
+          child: Container(
+            width: Responsive.contentMaxWidth(context),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.paddingLarge,
+              vertical: AppSizes.padding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Account card ───────────────────────
+                _Card(
+                  child: Column(
+                    children: [
+                      _Row(
+                        icon: Icons.key,
+                        title: 'Change Password',
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          size: 20.r,
+                          color: AppColors.gray,
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ForgotPasswordScreen(),
+                            ),
+                          );
+                        },
                       ),
-                      onTap: () {
-                        // TODO: navigate to ChangePasswordScreen
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      color: AppColors.lightGray,
-                      indent: 16.w,
-                      endIndent: 16.w,
-                    ),
-                    _Row(
-                      icon: Icons.phone_android,
-                      title: 'App version',
-                      trailing: Text(
-                        _appVersion,
-                        style: AppTextStyles.condition,
+                      Divider(
+                        height: 1,
+                        color: AppColors.lightGray,
+                        indent: 16.w,
+                        endIndent: 16.w,
                       ),
-                    ),
-                  ],
+                      _Row(
+                        icon: Icons.phone_android,
+                        title: 'App version',
+                        trailing: Text(
+                          _appVersion,
+                          style: AppTextStyles.condition,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
               const Gap(h: 20),
 
@@ -90,6 +106,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
+      )
     );
   }
 
@@ -166,10 +183,7 @@ class _Row extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSizes.radius),
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 14.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         child: Row(
           children: [
             Icon(icon, size: 18.r, color: titleColor),

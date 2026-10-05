@@ -9,7 +9,7 @@ import 'package:smgi.connect/viewmodels/referral_viewmodel.dart';
 import 'package:smgi.connect/views/admission/review_details_screen.dart';
 
 
-import '../../widgets/gap.dart';
+//import '../../widgets/gap.dart';
 import '../../widgets/gradient_button.dart';
 
 class ApplyReferralScreen extends StatefulWidget {
@@ -145,7 +145,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
-
+              
               // ── Title ───────────────────────────
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -154,9 +154,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                   style: AppTextStyles.pageTitle,
                 ),
               ),
-
               SizedBox(height: 16.h),
-
               // ── Yellow banner ───────────────────
               Container(
                 width: double.infinity,
@@ -208,7 +206,6 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                           ),
                         ),
                         SizedBox(width: 12.w),
-
                         // ── Apply button ──────────
                         SizedBox(
                           height: 48.h,
@@ -224,7 +221,6 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                   ],
                 ),
               ),
-
               // ── Animated reveal ─────────────────
               AnimatedSize(
                 duration: const Duration(milliseconds: 350),
@@ -251,7 +247,6 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
       ),
     );
   }
-
   Widget _buildReferrerDetailsSection(ReferralViewModel vm) {
     final r = vm.appliedReferral;
     if (r == null) return const SizedBox.shrink();

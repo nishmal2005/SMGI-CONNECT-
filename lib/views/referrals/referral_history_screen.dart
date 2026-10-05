@@ -31,10 +31,11 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     final vm = context.watch<ReferralViewModel>();
 
     return AppScaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const HomeAppBar(),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const HomeAppBar(),
 
           // ── Title ──────────────────────────────
           Padding(
@@ -57,6 +58,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
           Expanded(child: _buildBody(vm)),
         ],
       ),
+      )
     );
   }
 

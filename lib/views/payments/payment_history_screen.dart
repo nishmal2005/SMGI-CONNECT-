@@ -40,7 +40,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     final visible = vm.filtered;
 
     return AppScaffold(
-      padding: EdgeInsets.zero,
       body: SafeArea(
         child: Column(
           children: [

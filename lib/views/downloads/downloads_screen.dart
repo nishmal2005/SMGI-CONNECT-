@@ -44,40 +44,48 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
     return AppScaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(AppSizes.appBarHeight),
-        child: const BackAppBar(title: 'Downloads'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(
-          AppSizes.paddingLarge,
-          AppSizes.paddingSmall,
-          AppSizes.padding,
-          AppSizes.paddingLarge,
+        preferredSize: Size.fromHeight(
+          AppSizes.appBarHeight + MediaQuery.paddingOf(context).top,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Downloads',
-              style: AppTextStyles.pageTitle.copyWith(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: AppSizes.appBarHeight,
+            child: const BackAppBar(title: 'Downloads'),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSizes.paddingLarge,
+            AppSizes.paddingSmall,
+            AppSizes.padding,
+            AppSizes.paddingLarge,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Downloads',
+                style: AppTextStyles.pageTitle.copyWith(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            Gap(h: 5),
-            Text(
-              'Acknowledgements & Forms related to your\n'
-              'admission process.',
-              style: AppTextStyles.condition.copyWith(fontSize: 14.sp),
-            ),
-            Gap(h: 12),
-            Expanded(child: _buildBody(vm)),
-            Gap(h: 16),
-            GradientButton(
-              text: 'Done',
-              onTap: _onDone,
-            ),
-          ],
+              Gap(h: 5),
+              Text(
+                'Acknowledgements & Forms related to your\n'
+                'admission process.',
+                style: AppTextStyles.condition.copyWith(fontSize: 14.sp),
+              ),
+              Gap(h: 12),
+              Expanded(child: _buildBody(vm)),
+              Gap(h: 16),
+              GradientButton(text: 'Done', onTap: _onDone),
+            ],
+          ),
         ),
       ),
     );
@@ -100,10 +108,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                 style: AppTextStyles.body2.copyWith(color: AppColors.error),
               ),
               Gap(h: 12),
-              TextButton(
-                onPressed: vm.load,
-                child: const Text('Retry'),
-              ),
+              TextButton(onPressed: vm.load, child: const Text('Retry')),
             ],
           ),
         ),

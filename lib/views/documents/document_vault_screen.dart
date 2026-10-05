@@ -63,17 +63,14 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => UploadMarksCardScreen(
-          isReupload: true,
-          documentId: doc.id,
-        ),
+        builder: (_) =>
+            UploadMarksCardScreen(isReupload: true, documentId: doc.id),
       ),
     );
     if (!mounted) return;
     await _refresh();
   }
 
-  // ── Filters ─────────────────────────────────────
   DocumentModel? _firstWhere(
     List<DocumentModel> list,
     bool Function(DocumentModel) test,
@@ -96,14 +93,6 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     return aadhaar && t.contains('back');
   }
 
-  /// Single combined Aadhaar row (backend today uses `aadhaar_id_proof`).
-  bool _isAadhaarCombined(DocumentModel d) {
-    final t = '${d.documentType} ${d.title}'.toLowerCase();
-    return (t.contains('aadhaar') || t.contains('aadhar')) &&
-        !t.contains('front') &&
-        !t.contains('back');
-  }
-
   bool _isMarksCard(DocumentModel d) {
     final t = '${d.documentType} ${d.title}'.toLowerCase();
     return t.contains('tenth') ||
@@ -116,16 +105,9 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   Widget build(BuildContext context) {
     final docVm = context.watch<DocumentViewModel>();
 
-    // ── Aadhaar: prefer the two-row split; fall back to the
-    //    single combined row the backend currently returns.
     final aadhaarFront = _firstWhere(docVm.items, _isAadhaarFront);
     final aadhaarBack  = _firstWhere(docVm.items, _isAadhaarBack);
-    final aadhaarCombined = _firstWhere(docVm.items, _isAadhaarCombined);
-
-    final frontStatus = aadhaarFront?.status ?? aadhaarCombined?.status;
-    final backStatus  = aadhaarBack?.status  ?? aadhaarCombined?.status;
-
-    final marksCard = _firstWhere(docVm.items, _isMarksCard);
+    final marksCard    = _firstWhere(docVm.items, _isMarksCard);
 
     final isUploading = docVm.isUploading;
 
@@ -154,8 +136,8 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                     ),
                     SizedBox(height: 20.h),
                     _buildCard(
-                      frontStatus: frontStatus,
-                      backStatus: backStatus,
+                      frontStatus: aadhaarFront?.status,
+                      backStatus: aadhaarBack?.status,
                       marksCard: marksCard,
                       isUploading: isUploading,
                     ),
