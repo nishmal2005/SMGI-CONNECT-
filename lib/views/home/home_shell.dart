@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/nav_item.dart';
@@ -25,15 +26,15 @@ class _HomeShellState extends State<HomeShell> {
   /// Unvisited tabs never mount, so they never fire their initState APIs.
   final Set<int> _visited = {0};
 
-  static const _icons = <IconData>[
-    Icons.home,
-    Icons.description,
-    Icons.credit_card,
-    Icons.person,
+  static const _icons = <String>[
+    AppAssets.homeIcon,
+    AppAssets.fileIcon,
+    AppAssets.creditCardIcon,
+    AppAssets.handshakeIcon,
   ];
 
   void _onTabSelected(int i) {
-    if (_index == i) return;
+    if (i == _index) return;
     setState(() {
       _index = i;
       _visited.add(i);
@@ -64,13 +65,9 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Widget _buildBody() {
-    // First tab only — no IndexedStack, no eager mounting.
     if (_visited.length == 1) {
       return _buildPage(_index);
     }
-
-    // Once more than one tab has been visited, use IndexedStack so
-    // state is preserved. Unvisited tabs render an empty placeholder.
     return IndexedStack(
       index: _index,
       children: List.generate(
@@ -113,7 +110,7 @@ class _HomeShellState extends State<HomeShell> {
               children: List.generate(
                 _icons.length,
                 (i) => NavItem(
-                  icon: _icons[i],
+                  assetPath: _icons[i],
                   active: _index == i,
                   onTap: () => _onTabSelected(i),
                 ),
