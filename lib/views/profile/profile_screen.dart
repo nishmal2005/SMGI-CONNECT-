@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/views/profile/help_screen.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
@@ -70,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Row(
                 children: [
-                  _Avatar(image: vm.avatar),
+                  _Avatar(name: vm.name),
                   SizedBox(width: 14.w),
                   Expanded(
                     child: Column(
@@ -123,9 +122,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-          //   _Tile(title: 'Help', isLast: true, onTap: () {
-          //  //   Navigator.push(context, MaterialPageRoute(builder: (_) => const  HelpSupportScreen() ));
-          //   }),
           ],
         ),
       ),
@@ -138,8 +134,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 // ─────────────────────────────────────────────────────
 
 class _Avatar extends StatelessWidget {
-  final dynamic image;
-  const _Avatar({this.image});
+  final String name;
+  const _Avatar({required this.name});
+
+  /// First character of the user's name, uppercased.
+  /// Falls back to '?' when the name is empty.
+  String get _initial {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    return trimmed.characters.first.toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,8 +151,10 @@ class _Avatar extends StatelessWidget {
     return Container(
       height: size,
       width: size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        color: AppColors.primary.withValues(alpha: 0.12),
         border: Border.all(color: AppColors.primary, width: 2.w),
         boxShadow: [
           BoxShadow(
@@ -158,15 +164,14 @@ class _Avatar extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipOval(
-        child: image != null
-            ? Image.file(image as dynamic, fit: BoxFit.cover)
-            : Image.asset(
-                'assets/images/person.jpeg',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.person, color: AppColors.primary),
-              ),
+      child: Text(
+        _initial,
+        style: TextStyle(
+          fontSize: 22.sp,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
+          height: 1.0,
+        ),
       ),
     );
   }

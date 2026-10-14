@@ -56,6 +56,65 @@ class ApiClient {
   }) =>
       _request('DELETE', path, body: body, authenticated: authenticated);
 
+  /// GET a binary file (PDF, image, etc.).
+  /// Returns raw bytes — callers decide how to save or display them.
+  Future<List<int>> getBytes(
+    String path, {
+    bool authenticated = true,
+  }) async {
+    if (authenticated) {
+      final token = await accessToken;
+      if (token == null || token.isEmpty) {
+        _fireSessionExpired();
+        throw const ApiException(
+          'Session expired. Please log in again.',
+          statusCode: 401,
+        );
+      }
+    }
+
+    final uri = Uri.parse('${ApiEndpoints.baseUrl}$path');
+    final headers = await _headers(authenticated);
+    final stopwatch = Stopwatch()..start();
+
+    if (kDebugMode) {
+      debugPrint(
+        '$_cyan→ GET $_reset$uri '
+        '$_dim(bytes, auth=${headers.containsKey('Authorization')})$_reset',
+      );
+    }
+
+    try {
+      final response =
+          await _client.get(uri, headers: headers).timeout(_timeout);
+      stopwatch.stop();
+
+      if (kDebugMode) {
+        debugPrint(
+          '$_dim← ${response.statusCode} '
+          '(${response.bodyBytes.length}B)$_reset',
+        );
+      }
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          'Failed to download (${response.statusCode})',
+          statusCode: response.statusCode,
+        );
+      }
+
+      return response.bodyBytes;
+    } on ApiException {
+      stopwatch.stop();
+      rethrow;
+    } on Exception catch (e) {
+      stopwatch.stop();
+      final msg = 'Could not download file: $e';
+      _logError('GET', uri, msg, stopwatch.elapsedMilliseconds);
+      throw ApiException(msg);
+    }
+  }
+
   // ── Multipart ────────────────────────────────────
 
   Future<dynamic> multipart(
@@ -270,7 +329,7 @@ class ApiClient {
           );
         }
 
-        return _request(
+        return await _request(
           method,
           path,
           body: body,
@@ -416,17 +475,27 @@ class ApiClient {
 
   String _message(dynamic data) {
     if (data is Map<String, dynamic>) {
-      final detail = data['error'] ??
-          data['detail'] ??
-          data['message'] ??
-          data.values.firstWhere(
-            (v) => v != null,
-            orElse: () => null,
-          );
+      final detail =
+          data['error'] ?? data['detail'] ?? data['message'];
       if (detail is List && detail.isNotEmpty) {
         return detail.first.toString();
       }
-      return detail?.toString() ?? 'Request failed';
+      final message = detail?.toString();
+      final errors = data['errors'];
+      final errorDetails = errors is Map
+          ? errors.values
+              .where((value) => value != null)
+              .map((value) => value.toString())
+              .join(' ')
+          : '';
+      if (message != null && message.isNotEmpty) {
+        return errorDetails.isEmpty ? message : '$message $errorDetails';
+      }
+      if (errorDetails.isNotEmpty) return errorDetails;
+      return data.values
+              .firstWhere((value) => value != null, orElse: () => null)
+              ?.toString() ??
+          'Request failed';
     }
     return data?.toString() ?? 'Request failed';
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/viewmodels/auth_viewmodel.dart';
+import 'package:smgi_connect/core/constants/app_text_styles.dart';
+import 'package:smgi_connect/viewmodels/auth_viewmodel.dart';
 
 
 

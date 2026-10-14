@@ -15,6 +15,24 @@ import '../../widgets/gender_selector.dart';
 import '../../widgets/gradient_button.dart';
 import 'course_selection_screen.dart';
 
+// ── Static Data Lists (Pure Dart - No extra packages) ──
+const List<String> nationalities = [
+  'Indian',
+  'Other',
+];
+
+// Dynamic State & District mapping (Sorted alphabetically below)
+const Map<String, List<String>> stateDistricts = {
+  'Andhra Pradesh': ['Anantapur', 'Chittoor', 'Guntur', 'Krishna', 'Kurnool', 'Visakhapatnam'],
+  'Delhi': ['Central Delhi', 'East Delhi', 'New Delhi', 'North Delhi', 'North East Delhi', 'North West Delhi', 'South Delhi', 'South East Delhi', 'South West Delhi', 'West Delhi'],
+  'Karnataka': ['Bagalkot', 'Bangalore Rural', 'Bangalore Urban', 'Belgaum', 'Bellary', 'Bidar', 'Chamarajanagar', 'Chikmagalur', 'Chitradurga', 'Dakshina Kannada', 'Davanagere', 'Dharwad', 'Gadag', 'Gulbarga', 'Hassan', 'Haveri', 'Kodagu', 'Kolar', 'Koppal', 'Mandya', 'Mysore', 'Raichur', 'Shimoga', 'Tumkur', 'Udupi', 'Uttara Kannada'],
+  'Kerala': ['Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod', 'Kollam', 'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad', 'Pathanamthitta', 'Thiruvananthapuram', 'Thrissur', 'Wayanad'],
+  'Maharashtra': ['Ahmednagar', 'Akola', 'Amravati', 'Aurangabad', 'Beed', 'Bhandara', 'Buldhana', 'Chandrapur', 'Dhule', 'Gadchiroli', 'Gondia', 'Hingoli', 'Jalgaon', 'Jalna', 'Kolhapur', 'Latur', 'Mumbai City', 'Mumbai Suburban', 'Nagpur', 'Nanded', 'Nandurbar', 'Nashik', 'Osmanabad', 'Palghar', 'Parbhani', 'Pune', 'Raigad', 'Ratnagiri', 'Sangli', 'Satara', 'Sindhudurg', 'Solapur', 'Thane', 'Wardha', 'Washim', 'Yavatmal'],
+  'Tamil Nadu': ['Ariyalur', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri', 'Dindigul', 'Erode', 'Kanchipuram', 'Kanyakumari', 'Karur', 'Madurai', 'Nagapattinam', 'Namakkal', 'Nilgiris', 'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Salem', 'Sivaganga', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur', 'Vellore', 'Viluppuram', 'Virudhunagar'],
+  'Other': ['Other District']
+};
+// ───────────────────────────────────────────────────────
+
 class PersonalDetailsScreen extends StatefulWidget {
   const PersonalDetailsScreen({super.key});
 
@@ -35,6 +53,10 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   final _pincode = TextEditingController();
   final _email = TextEditingController();
 
+  // Controllers for "Other" Nationality input
+  final _otherState = TextEditingController();
+  final _otherDistrict = TextEditingController();
+
   @override
   void dispose() {
     _name.dispose();
@@ -46,6 +68,8 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     _address.dispose();
     _pincode.dispose();
     _email.dispose();
+    _otherState.dispose();
+    _otherDistrict.dispose();
     super.dispose();
   }
 
@@ -58,8 +82,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       initialDate: DateTime(now.year - 17, now.month, now.day),
     );
     if (picked == null) return;
-    final formatted =
-        '${picked.day.toString().padLeft(2, '0')}/'
+    final formatted = '${picked.day.toString().padLeft(2, '0')}/'
         '${picked.month.toString().padLeft(2, '0')}/'
         '${picked.year}';
     _dob.text = formatted;
@@ -69,7 +92,10 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   Future<void> _onContinue(PersonalDetailsViewModel vm) async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Snapshot the values once — same data goes to the API and the aggregate VM.
+    // Determine final state and district based on nationality
+    final finalState = vm.nationality == 'Indian' ? vm.state : _otherState.text.trim();
+    final finalDistrict = vm.nationality == 'Indian' ? vm.district : _otherDistrict.text.trim();
+
     final name = _name.text.trim();
     final dob = _dob.text.trim();
     final father = _father.text.trim();
@@ -83,8 +109,8 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     final ok = await vm.submit(
       name: name,
       dob: dob,
-      father: father,          // ← matches VM param
-      mother: mother,          // ← matches VM param
+      father: father,
+      mother: mother,
       phone1: phone1,
       phone2: phone2,
       address: address,
@@ -103,7 +129,6 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       return;
     }
 
-    // Stash in the aggregate application state so the Review screen reads it.
     context.read<ApplicationViewModel>().setPersonal({
       'name': name,
       'gender': vm.gender,
@@ -116,8 +141,8 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       'address': address,
       'postal_code': pincode,
       'nationality': vm.nationality,
-      'state': vm.state,
-      'district': vm.district,
+      'state': finalState,
+      'district': finalDistrict,
     });
 
     Navigator.push(
@@ -129,6 +154,18 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<PersonalDetailsViewModel>();
+
+    // Determine if the user is Indian to show Dropdowns or Text Fields
+    final bool isIndian = vm.nationality == 'Indian' || vm.nationality == null;
+
+    // Sort States Alphabetically
+    final List<String> sortedStates = stateDistricts.keys.toList()..sort();
+
+    // Get the districts based on the currently selected state, sorted alphabetically
+    final List<String> currentDistricts =
+        (vm.state != null && stateDistricts.containsKey(vm.state))
+            ? (List<String>.from(stateDistricts[vm.state]!)..sort())
+            : [];
 
     return AppScaffold(
       body: Column(
@@ -292,39 +329,65 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                     CustomDropdown(
                       hint: 'Select Nationality',
                       value: vm.nationality,
-                      items: const ['Indian', 'Other'],
-                      onChanged: vm.setNationality,
+                      items: nationalities,
+                      onChanged: (val) {
+                        if (val != null) {
+                          vm.setNationality(val);
+                          // Reset location fields when nationality changes
+                          vm.setState(null);
+                          vm.setDistrict(null);
+                          _otherState.clear();
+                          _otherDistrict.clear();
+                        }
+                      },
                     ),
                     Gap(h: 16),
 
-                    // ── State ────────────────────────────
-                    _label('State'),
-                    Gap(h: 6),
-                    CustomDropdown(
-                      hint: 'Select State',
-                      value: vm.state,
-                      items: const [
-                        'Karnataka',
-                        'Tamil Nadu',
-                        'Kerala',
-                      ],
-                      onChanged: vm.setState,
-                    ),
-                    Gap(h: 16),
-
-                    // ── District ─────────────────────────
-                    _label('District'),
-                    Gap(h: 6),
-                    CustomDropdown(
-                      hint: 'Select District',
-                      value: vm.district,
-                      items: const [
-                        'Bangalore',
-                        'Chennai',
-                        'Kochi',
-                      ],
-                      onChanged: vm.setDistrict,
-                    ),
+                    // ── State & District (Conditional) ───
+                    if (isIndian) ...[
+                      // Show Dropdowns for Indian
+                      _label('State'),
+                      Gap(h: 6),
+                      CustomDropdown(
+                        hint: 'Select State',
+                        value: vm.state,
+                        items: sortedStates,
+                        onChanged: (val) {
+                          if (val != null) {
+                            vm.setState(val);
+                            vm.setDistrict(null); // Reset district
+                          }
+                        },
+                      ),
+                      Gap(h: 16),
+                      _label('District'),
+                      Gap(h: 6),
+                      CustomDropdown(
+                        hint: 'Select District',
+                        value: vm.district,
+                        items: currentDistricts,
+                        onChanged: vm.setDistrict,
+                      ),
+                    ] else ...[
+                      // Show Text Inputs for Other
+                      _label('State'),
+                      Gap(h: 6),
+                      CustomInputField(
+                        hintText: 'Enter Your State',
+                        controller: _otherState,
+                        onChanged: (_) => setState(() {}),
+                        validator: _required,
+                      ),
+                      Gap(h: 16),
+                      _label('District'),
+                      Gap(h: 6),
+                      CustomInputField(
+                        hintText: 'Enter Your District',
+                        controller: _otherDistrict,
+                        onChanged: (_) => setState(() {}),
+                        validator: _required,
+                      ),
+                    ],
                     Gap(h: 24),
                   ],
                 ),
@@ -365,7 +428,6 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   String? _required(String? v) =>
       (v == null || v.trim().isEmpty) ? 'Required' : null;
 
-  /// Contact 1 — required, 10–15 digits after stripping non-digits.
   String? _phoneValidator(String? v) {
     if (v == null) return 'Required';
     final digits = v.replaceAll(RegExp(r'\D'), '');
@@ -375,7 +437,6 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     return null;
   }
 
-  /// Contact 2 — optional, but if filled must be 10–15 digits.
   String? _phone2Validator(String? v) {
     if (v == null || v.trim().isEmpty) return null;
     final digits = v.replaceAll(RegExp(r'\D'), '');

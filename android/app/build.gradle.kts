@@ -1,7 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // REMOVED: id("kotlin-android") <-- fixes the Kotlin Gradle Plugin warning
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -15,27 +16,39 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.smgi.connect"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // ── SmartGateway / Juspay client ID ─────────────────────
+        val clientId = (rootProject.extra["clientId"] as? String) ?: "hdfcmaster"
+
+        manifestPlaceholders["clientId"] = clientId
+        buildConfigField("String", "JUSPAY_CLIENT_ID", "\"$clientId\"")
+        resValue("string", "juspay_client_id", clientId)
+        // ────────────────────────────────────────────────────────
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+
+    // ── Enable the features that defaultConfig uses ─────────
+    buildFeatures {
+        buildConfig = true
+        resValues   = true      // ← THIS FIXES YOUR ERROR
+    }
+    // ────────────────────────────────────────────────────────
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

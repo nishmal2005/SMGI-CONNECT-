@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/image_compress.dart';
-import '../../data/models/document_model.dart';
 import '../../viewmodels/aadhaar_viewmodel.dart';
 import '../../viewmodels/application_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';

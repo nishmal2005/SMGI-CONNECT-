@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/data/repositories/document_repository.dart';
+import 'package:smgi_connect/data/repositories/document_repository.dart';
 
 import 'app.dart';
 import 'core/constants/api_endpoints.dart';
 import 'core/network/api_client.dart';
 
-// ── Repositories ─────────────────────────────────────
 import 'data/repositories/aadhaar_repository.dart';
 import 'data/repositories/application_repository.dart';
 import 'data/repositories/auth_repository.dart';
@@ -16,7 +15,6 @@ import 'data/repositories/payment_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/referral_repository.dart';
 
-// ── ViewModels ───────────────────────────────────────
 import 'viewmodels/aadhaar_viewmodel.dart';
 import 'viewmodels/application_viewmodel.dart';
 import 'viewmodels/auth_viewmodel.dart';
@@ -29,7 +27,6 @@ import 'viewmodels/personal_details_viewmodel.dart';
 import 'viewmodels/profile_viewmodel.dart';
 import 'viewmodels/referral_viewmodel.dart';
 
-// ── Screens ──────────────────────────────────────────
 import 'views/auth/login_screen.dart';
 
 void main() {
@@ -38,7 +35,6 @@ void main() {
   final apiClient = ApiClient();
   final authVm = AuthViewModel(AuthRepository(apiClient));
 
-  /// Push the LoginScreen and wipe the navigation stack.
   void goToLogin() {
     navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -46,22 +42,17 @@ void main() {
     );
   }
 
-  // Session expired → logout and redirect.
   apiClient.onSessionExpired = () {
     authVm.forceLogout();
-    // forceLogout fires onLoggedOut which navigates.
   };
 
-  // Logout complete → redirect.
   authVm.onLoggedOut = goToLogin;
 
   runApp(
     MultiProvider(
       providers: [
-        // ── Core ─────────────────────────────────────
         Provider<ApiClient>.value(value: apiClient),
 
-        // ── Repositories ─────────────────────────────
         Provider(create: (_) => AuthRepository(apiClient)),
         Provider(create: (_) => AadhaarRepository(apiClient)),
         Provider(create: (_) => ProfileRepository(apiClient)),
@@ -72,7 +63,6 @@ void main() {
         Provider(create: (_) => PaymentRepository(apiClient)),
         Provider(create: (_) => ReferralRepository(apiClient)),
 
-        // ── ViewModels ───────────────────────────────
         ChangeNotifierProvider.value(value: authVm),
         ChangeNotifierProvider(
           create: (c) => AadhaarViewModel(c.read<AadhaarRepository>()),
@@ -110,42 +100,3 @@ void main() {
     ),
   );
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:provider/provider.dart';
-// import 'package:smgi.connect/views/downloads/downloads_screen.dart';
-
-// import 'core/constants/api_endpoints.dart';
-// import 'core/network/api_client.dart';
-// import 'core/theme/app_theme.dart';
-// import 'data/repositories/notification_repository.dart';
-// import 'viewmodels/downloads_viewmodel.dart';
-
-// void main() {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   ApiEndpoints.validate();
-
-//   final apiClient = ApiClient();
-
-//   runApp(
-//     MultiProvider(
-//       providers: [
-//         Provider<ApiClient>.value(value: apiClient),
-//         Provider(create: (_) => NotificationRepository(apiClient)),
-//         ChangeNotifierProvider(
-//           create: (c) => DownloadsViewModel(c.read<NotificationRepository>()),
-//         ),
-//       ],
-//       child: ScreenUtilInit(
-//         designSize: const Size(390, 844),
-//         minTextAdapt: true,
-//         builder: (_, __) => MaterialApp(
-//           debugShowCheckedModeBanner: false,
-//           theme: AppTheme.light,
-//           home: const DownloadsScreen(),
-//         ),
-//       ),
-//     ),
-//   );
-// }

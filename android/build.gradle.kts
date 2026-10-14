@@ -1,3 +1,10 @@
+buildscript {
+    val configuredClientId = System.getenv("JUSPAY_PAYMENT_PAGE_CLIENT_ID")
+        ?.takeIf { it.isNotBlank() }
+        ?: "hdfcmaster"
+    extra["clientId"] = configuredClientId
+}
+
 allprojects {
     repositories {
         google()
@@ -15,6 +22,21 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
+// --- Force all subprojects (plugins) to use compileSdk 36 ---
+subprojects {
+    plugins.withId("com.android.library") {
+        extensions.configure<com.android.build.api.dsl.LibraryExtension> {
+            compileSdk = 36
+        }
+    }
+    plugins.withId("com.android.application") {
+        extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+            compileSdk = 36
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }

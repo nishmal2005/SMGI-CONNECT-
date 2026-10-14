@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:smgi.connect/core/network/api_exception.dart';
-import 'package:smgi.connect/data/models/referral_model.dart';
-import 'package:smgi.connect/data/repositories/referral_repository.dart';
+import 'package:smgi_connect/core/network/api_exception.dart';
+import 'package:smgi_connect/data/models/referral_model.dart';
+import 'package:smgi_connect/data/repositories/referral_repository.dart';
 
 
 class ReferralViewModel extends ChangeNotifier {
