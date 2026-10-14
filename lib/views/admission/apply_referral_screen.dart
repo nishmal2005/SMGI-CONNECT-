@@ -8,7 +8,7 @@ import 'package:smgi.connect/viewmodels/application_viewmodel.dart';
 import 'package:smgi.connect/viewmodels/referral_viewmodel.dart';
 
 
-import '../../widgets/gap.dart';
+//import '../../widgets/gap.dart';
 import '../../widgets/gradient_button.dart';
 import 'review_details_screen.dart';
 

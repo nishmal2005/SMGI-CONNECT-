@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:smgi.connect/views/profile/help_screen.dart';
-
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
@@ -136,7 +135,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 // ─────────────────────────────────────────────────────
 // Private widgets
 // ─────────────────────────────────────────────────────
-
 class _Avatar extends StatelessWidget {
   final dynamic image;
   const _Avatar({this.image});
