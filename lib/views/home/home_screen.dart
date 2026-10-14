@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
 import '../../viewmodels/application_viewmodel.dart';
+import '../../widgets/admission_card.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/gap.dart';
-import 'admission_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -58,15 +58,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Banner (no padding) ────────
-                  Image.asset(
-                    'assets/images/homebanner.png',
-                    width: double.infinity,
-                    height: 150.h,
-                    fit: BoxFit.cover,
+                  Container(
+                    width: MediaQuery.sizeOf(context).width,
+                    margin: EdgeInsets.zero,
+                    padding: EdgeInsets.zero,
+                    child: Image.asset(
+                      'assets/images/homebanner.png',
+                      height: 150.h,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-
-                  // ── Content (padded) ───────────
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
                     child: Column(

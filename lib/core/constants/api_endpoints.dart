@@ -12,10 +12,10 @@ class ApiEndpoints {
     assert(
       !baseUrl.endsWith('/'),
       'ApiEndpoints.baseUrl must not end with / — got: $baseUrl',
-    );
+    ); 
   }
 
-  // ── Auth ─────────────────────────────────────────
+  // ── Auth ────────────────────────────────────────
   static const String sendOtp = '/send-otp/';
   static const String verifyOtp = '/verify-otp/';
   static const String resendOtp = '/resend-otp/';
@@ -30,13 +30,9 @@ class ApiEndpoints {
 
   static const String profile = '/profile/';
 
-  // ── Aadhaar ──────────────────────────────────────
-  /// POST — first-time upload: aadhaar_number, aadhaar_front, aadhaar_back
-  static const String aadhaarUpload = '/aadhaar/upload/';
-
-  /// GET  — read current Aadhaar status
-  /// PATCH — re-upload one side: side, file
-  static const String aadhaar = '/aadhaar/';
+  // ── Aadhaar (split endpoints) ────────────────────
+  static const String aadhaarFrontUpload = '/aadhaar-front/upload/';
+  static const String aadhaarBackUpload  = '/aadhaar-back/upload/';
 
   // ── Courses ──────────────────────────────────────
   static const String courses = '/courses/';
@@ -44,30 +40,37 @@ class ApiEndpoints {
 
   // ── Applications ─────────────────────────────────
   static const String createApplication = '/applications/';
-  static const String applicationStatus = '/applications/status/';
-  static String applicationReview(String id) => '/applications/$id/review/';
+  static const String applicationStatus  = '/applications/status/';
+
+  static String applicationReview(String id) =>
+      '/applications/$id/review/';
+
   static String applicationReviewConfirm(String id) =>
       '/applications/$id/review/confirm/';
+
   static String applicationPaymentSummary(String id) =>
       '/applications/$id/payment-summary/';
+
+  static String applicationPaymentInitiate(String id) =>
+      '/applications/$id/payments/initiate/';
+
+  static String applicationPaymentStatus(String id) =>
+      '/applications/$id/payments/status/';
+
   static String applicationPaymentSuccess(String id) =>
       '/applications/$id/payment-success/';
+
   static String applicationAcknowledgment(String id) =>
       '/applications/$id/admission-acknowledgment/';
 
-  // ── Documents ────────────────────────────────────
-  /// GET  — list student documents
-  /// POST — upload: document_type, file
+  // ── Documents ──────────────────────────────────
   static const String documents = '/documents/';
-
-  /// GET   — document details
-  /// PATCH — re-upload rejected: file only
   static String document(String id) => '/documents/$id/';
 
-  // ── Referrals ────────────────────────────────────
+  // ── Referrals ──────────────────────────────────
   static const String referralValidate = '/referrals/validate/';
-  static const String referralApply = '/referrals/apply/';
-  static const String referralHistory = '/referrals/history/';
+  static const String referralApply    = '/referrals/apply/';
+  static const String referralHistory  = '/referrals/history/';
 
   // ── Misc ─────────────────────────────────────────
   static const String notifications = '/notifications/';
@@ -76,5 +79,5 @@ class ApiEndpoints {
   static String knowledgeDownload(String id) =>
       '/knowledge-downloads/$id/download/';
   static const String helpSupport = '/help-support/';
-  static const String authTest = '/auth-test/';
+  static const String authTest    = '/auth-test/';
 }

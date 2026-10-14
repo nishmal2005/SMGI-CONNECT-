@@ -19,11 +19,43 @@ class ReviewDetailsScreen extends StatefulWidget {
 
 class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   bool _confirmed = false;
+  bool _continuing = false;
 
-  void _continue() {
+  Future<void> _continue() async {
+    if (!_confirmed || _continuing) return;
+    final app = context.read<ApplicationViewModel>();
+    final applicationId = app.applicationId;
+
+    if (applicationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Application is not ready yet. Please try again.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _continuing = true);
+    final isConfirmed = await app.confirmReview();
+    if (!mounted) return;
+    setState(() => _continuing = false);
+
+    if (!isConfirmed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            app.errorMessage ?? 'Unable to confirm the application review.',
+          ),
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const PaymentScreen()),
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(applicationId: applicationId),
+      ),
     );
   }
 
@@ -90,10 +122,10 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             _ReviewCard(
               title: 'Required Documents',
               data: {
-                'Aadhaar Card': (app.aadhaarFrontPath != null &&
-                        app.aadhaarBackPath != null)
-                    ? 'Uploaded'
-                    : 'Pending',
+                'Aadhaar Card':
+                    (app.aadhaarFrontPath != null && app.aadhaarBackPath != null)
+                        ? 'Uploaded'
+                        : 'Pending',
                 '10th Marks Card':
                     app.marksCardPath != null ? 'Uploaded' : 'Pending',
               },
@@ -152,8 +184,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
             // ── Continue ────────────────────────────
             GradientButton(
-              text: 'Continue',
-              enabled: _confirmed,
+              text: _continuing ? 'Confirming...' : 'Continue',
+              enabled: _confirmed && !_continuing,
               onTap: _continue,
             ),
           ],

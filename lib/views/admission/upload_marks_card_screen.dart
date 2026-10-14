@@ -1,10 +1,8 @@
 import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../viewmodels/application_viewmodel.dart';
@@ -135,9 +133,7 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final fileName = _pickedPath == null
-        ? null
-        : _pickedPath!.split(Platform.pathSeparator).last;
+    final fileName = _pickedPath?.split(Platform.pathSeparator).last;
 
     return AppScaffold(
       body: SingleChildScrollView(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/data/models/notification_model.dart';
-import 'package:smgi.connect/viewmodels/notification_viewmodel.dart';
+import 'package:smgi_connect/data/models/notification_model.dart';
+import 'package:smgi_connect/viewmodels/notification_viewmodel.dart';
 
 
 import '../../../../../core/constants/app_colors.dart';

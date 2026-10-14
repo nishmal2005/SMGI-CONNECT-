@@ -6,25 +6,44 @@ class ApplicationRepository {
   ApplicationRepository(this._client);
   final ApiClient _client;
 
+  /// POST /applications/
   Future<ApiResponse> create(Map<String, dynamic> body) async =>
-      ApiResponse(await _client.post(ApiEndpoints.createApplication, body: body));
+      ApiResponse(await _client.post(
+        ApiEndpoints.createApplication,
+        body: body,
+      ));
 
+  /// GET /applications/status/
   Future<ApiResponse> status() async =>
       ApiResponse(await _client.get(ApiEndpoints.applicationStatus));
 
+  /// GET /applications/{id}/review/
   Future<ApiResponse> review(String id) async =>
       ApiResponse(await _client.get(ApiEndpoints.applicationReview(id)));
 
-  Future<ApiResponse> confirmReview(String id, Map<String, dynamic> body) async =>
+  /// POST /applications/{id}/review/confirm/
+  Future<ApiResponse> confirmReview(
+    String id, {
+    required bool confirmed,
+  }) async =>
       ApiResponse(await _client.post(
-          ApiEndpoints.applicationReviewConfirm(id), body: body));
+        ApiEndpoints.applicationReviewConfirm(id),
+        body: {'confirmed': confirmed},
+      ));
 
+  /// GET /applications/{id}/payment-summary/
   Future<ApiResponse> paymentSummary(String id) async =>
-      ApiResponse(await _client.get(ApiEndpoints.applicationPaymentSummary(id)));
+      ApiResponse(await _client.get(
+        ApiEndpoints.applicationPaymentSummary(id),
+      ));
 
+  /// GET /applications{id}/payment-success/
   Future<ApiResponse> paymentSuccess(String id) async =>
-      ApiResponse(await _client.get(ApiEndpoints.applicationPaymentSuccess(id)));
+      ApiResponse(await _client.get(
+        ApiEndpoints.applicationPaymentSuccess(id),
+      ));
 
-  Future<ApiResponse> acknowledgment(String id) async =>
-      ApiResponse(await _client.get(ApiEndpoints.applicationAcknowledgment(id)));
+  /// GET /applications/{id}/admission-acknowledgment/
+  Future<List<int>> acknowledgment(String id) =>
+      _client.getBytes(ApiEndpoints.applicationAcknowledgment(id));
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/data/models/document_model.dart';
+import 'package:smgi_connect/data/models/document_model.dart';
 
 
 class StatusWidget extends StatelessWidget {

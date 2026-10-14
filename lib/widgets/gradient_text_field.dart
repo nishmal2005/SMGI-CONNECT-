@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
 
-
+import '../core/constants/app_colors.dart';
+import '../core/constants/app_sizes.dart';
+import '../core/constants/app_text_styles.dart';
 
 class GradientTextField extends StatelessWidget {
   final String hint;
   final bool obscure;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;   // ← ADDED
   final TextInputType? keyboardType;
 
   const GradientTextField({
@@ -19,6 +19,7 @@ class GradientTextField extends StatelessWidget {
     this.obscure = false,
     this.controller,
     this.onChanged,
+    this.onSubmitted,                        // ← ADDED
     this.keyboardType,
   });
 
@@ -39,6 +40,10 @@ class GradientTextField extends StatelessWidget {
         obscureText: obscure,
         keyboardType: keyboardType,
         onChanged: onChanged,
+        onSubmitted: onSubmitted,            // ← ADDED
+        textInputAction: onSubmitted != null
+            ? TextInputAction.done
+            : TextInputAction.next,
         style: AppTextStyles.caption.copyWith(color: AppColors.white),
         decoration: InputDecoration(
           hintText: hint,

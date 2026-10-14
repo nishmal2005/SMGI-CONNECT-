@@ -1,7 +1,7 @@
 class CourseModel {
   /// Discipline id (the group).
   final String id;
-  final String title;              
+  final String title;
   final String? description;
 
   /// Programs under this discipline. Empty for the flat shape —
@@ -20,7 +20,8 @@ class CourseModel {
   bool get isProgram => programs.isEmpty;
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
-    final rawPrograms = json['programs'];
+    // Support both 'programs' and 'courses' keys for the nested list
+    final rawPrograms = json['programs'] ?? json['courses'];
     final programs = rawPrograms is List
         ? rawPrograms
             .whereType<Map>()
@@ -31,6 +32,7 @@ class CourseModel {
     return CourseModel(
       id: json['id']?.toString() ?? '',
       title: json['discipline']?.toString() ??
+          json['discipline_name']?.toString() ??
           json['title']?.toString() ??
           json['name']?.toString() ??
           '',
@@ -43,7 +45,7 @@ class CourseModel {
 class ProgramModel {
   final String id;
   final String title;
-  final String? discipline;       // filled by the VM for the flat case
+  final String? discipline; // filled by the VM for the flat case
 
   const ProgramModel({
     required this.id,
@@ -52,11 +54,14 @@ class ProgramModel {
   });
 
   factory ProgramModel.fromJson(Map<String, dynamic> json) => ProgramModel(
-        id: json['id']?.toString() ?? '',
+        id: json['id']?.toString() ?? json['program_id']?.toString() ?? '',
+        // Added more fallback keys and a default string so it never shows blank
         title: json['title']?.toString() ??
             json['name']?.toString() ??
             json['program']?.toString() ??
-            '',
+            json['program_name']?.toString() ??
+            json['course_name']?.toString() ??
+            'Unknown Program',
         discipline: json['discipline']?.toString(),
       );
 }

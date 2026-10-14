@@ -29,7 +29,12 @@ class ApplicationViewModel extends ChangeNotifier {
 
   bool isSubmitting = false;
   String? errorMessage;
-  String? applicationId;
+  bool isConfirmingReview = false;
+
+  /// Backend ID of the created/loaded application.
+  /// Always either a non-empty String or null — never "".
+  String? _applicationId;
+  String? get applicationId => _applicationId;
 
   String? status;
   bool isLoadingStatus = false;
@@ -39,7 +44,7 @@ class ApplicationViewModel extends ChangeNotifier {
 
   // ── Public getters ─────────────────────────────
   bool get hasApplication =>
-      applicationId != null && applicationId!.isNotEmpty;
+      _applicationId != null && _applicationId!.trim().isNotEmpty;
 
   bool get isAdmissionCompleted {
     if (_acknowledged) return true;
@@ -52,7 +57,7 @@ class ApplicationViewModel extends ChangeNotifier {
 
   AdmissionState get admissionState {
     if (isAdmissionCompleted) return AdmissionState.completed;
-    if (_hasStartedAnyStep)   return AdmissionState.inProgress;
+    if (_hasStartedAnyStep) return AdmissionState.inProgress;
     return AdmissionState.notStarted;
   }
 
@@ -80,15 +85,22 @@ class ApplicationViewModel extends ChangeNotifier {
   Future<void> hydrate() async {
     final prefs = await SharedPreferences.getInstance();
     _acknowledged = prefs.getBool(_kCompleted) ?? false;
-    applicationId ??= prefs.getString(_kAppId);
+
+    final saved = prefs.getString(_kAppId);
+    _applicationId =
+        (saved != null && saved.trim().isNotEmpty) ? saved.trim() : null;
+
     notifyListeners();
   }
 
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kCompleted, _acknowledged);
-    if (applicationId != null) {
-      await prefs.setString(_kAppId, applicationId!);
+
+    if (_applicationId != null && _applicationId!.trim().isNotEmpty) {
+      await prefs.setString(_kAppId, _applicationId!);
+    } else {
+      await prefs.remove(_kAppId);
     }
   }
 
@@ -139,6 +151,18 @@ class ApplicationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Explicit setter for external callers (e.g. after a manual API call).
+  void setApplicationId(dynamic id) {
+    if (id == null) {
+      _applicationId = null;
+    } else {
+      final s = id.toString().trim();
+      _applicationId = s.isEmpty ? null : s;
+    }
+    _persist();
+    notifyListeners();
+  }
+
   // ── Network ─────────────────────────────────────
   Future<bool> submit() async {
     if (courseId == null || courseId!.isEmpty) {
@@ -146,6 +170,7 @@ class ApplicationViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+
     final courseInt = int.tryParse(courseId!);
     if (courseInt == null) {
       errorMessage = 'Invalid course selected.';
@@ -166,15 +191,49 @@ class ApplicationViewModel extends ChangeNotifier {
         'referral_code': referralCode,
       });
       final obj = res.object;
-      applicationId = obj?['id']?.toString() ??
-          obj?['application_id']?.toString();
+      final rawId = obj?['id'] ?? obj?['application_id'];
+      final idStr = rawId?.toString().trim();
+      _applicationId =
+          (idStr != null && idStr.isNotEmpty) ? idStr : null;
+
       await _persist();
-      return applicationId != null;
+      return _applicationId != null;
     } on ApiException catch (e) {
       errorMessage = e.message;
       return false;
     } finally {
       isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> confirmReview() async {
+    final id = _applicationId;
+    if (id == null || id.isEmpty) {
+      errorMessage = 'Application is not ready yet. Please try again.';
+      notifyListeners();
+      return false;
+    }
+    if (isConfirmingReview) return false;
+
+    isConfirmingReview = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _repo.confirmReview(id, confirmed: true);
+      final body = response.object;
+      if (body?['success'] != true || body?['review_confirmed'] != true) {
+        errorMessage = body?['message']?.toString() ??
+            'The application review was not confirmed. Please try again.';
+        return false;
+      }
+      return true;
+    } on ApiException catch (e) {
+      errorMessage = e.message;
+      return false;
+    } finally {
+      isConfirmingReview = false;
       notifyListeners();
     }
   }
@@ -187,13 +246,15 @@ class ApplicationViewModel extends ChangeNotifier {
     try {
       final res = await _repo.status();
       final obj = res.object;
+
       status = obj?['status']?.toString() ??
           obj?['application_status']?.toString() ??
           obj?['state']?.toString();
 
-      final id = obj?['id']?.toString() ??
-          obj?['application_id']?.toString();
-      if (id != null && id.isNotEmpty) applicationId = id;
+      final rawId = obj?['id'] ?? obj?['application_id'];
+      final idStr = rawId?.toString().trim();
+      _applicationId =
+          (idStr != null && idStr.isNotEmpty) ? idStr : null;
 
       final s = status?.toLowerCase();
       if (s == 'approved' || s == 'completed' || s == 'admitted') {
@@ -202,7 +263,15 @@ class ApplicationViewModel extends ChangeNotifier {
       await _persist();
       statusError = null;
     } on ApiException catch (e) {
-      if (e.statusCode != 404) statusError = e.message;
+      if (e.statusCode == 404) {
+        _applicationId = null;
+        status = null;
+        _acknowledged = false;
+        await _persist();
+        statusError = null;
+      } else {
+        statusError = e.message;
+      }
     } finally {
       isLoadingStatus = false;
       notifyListeners();
@@ -220,8 +289,9 @@ class ApplicationViewModel extends ChangeNotifier {
     duration = null;
     marksCardPath = null;
     referralCode = null;
-    applicationId = null;
+    _applicationId = null;
     errorMessage = null;
+    isConfirmingReview = false;
     status = null;
     statusError = null;
     _acknowledged = false;

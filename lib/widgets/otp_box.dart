@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart' show AppTextStyles;
+import 'package:smgi_connect/core/constants/app_sizes.dart';
+import 'package:smgi_connect/core/constants/app_text_styles.dart' show AppTextStyles;
 
 class OtpBox extends StatelessWidget {
   final TextEditingController controller;

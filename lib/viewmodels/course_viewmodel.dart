@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:smgi.connect/core/network/api_exception.dart';
-import 'package:smgi.connect/data/models/course_model.dart';
-import 'package:smgi.connect/data/repositories/course_repository.dart';
-
-
+import 'package:smgi_connect/core/network/api_exception.dart';
+import 'package:smgi_connect/data/models/course_model.dart';
+import 'package:smgi_connect/data/repositories/course_repository.dart';
 
 class CourseViewModel extends ChangeNotifier {
   CourseViewModel(this._repo);
@@ -33,6 +31,11 @@ class CourseViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final res = await _repo.list();
+      
+      // --- DEBUG PRINT ADDED HERE ---
+      // Check your terminal when this runs to see the exact API shape
+      debugPrint("RAW COURSE API RESPONSE: ${res.results}");
+      
       final raw = res.results.whereType<Map>().toList();
       disciplines = _group(raw);
     } on ApiException catch (e) {
@@ -49,9 +52,10 @@ class CourseViewModel extends ChangeNotifier {
   List<CourseModel> _group(List<Map> raw) {
     if (raw.isEmpty) return const [];
 
-    // Detect grouped shape.
+    // Detect grouped shape. Now checks for 'programs' OR 'courses'.
     final hasNested = raw.any(
-      (e) => e['programs'] is List && (e['programs'] as List).isNotEmpty,
+      (e) => (e['programs'] is List && (e['programs'] as List).isNotEmpty) ||
+             (e['courses'] is List && (e['courses'] as List).isNotEmpty),
     );
 
     if (hasNested) {

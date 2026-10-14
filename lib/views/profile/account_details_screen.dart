@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
@@ -56,11 +55,11 @@ class AccountDetailsScreen extends StatelessWidget {
               SizedBox(height: 5.h),
 
               // ── Avatar ─────────────────────────────
-              _AvatarLarge(image: vm.avatar),
+              _AvatarLarge(name: vm.name),
 
               SizedBox(height: 4.h),
 
-              // ── Edit link (very close to avatar) ───
+              // ── Edit link ──────────────────────────
               InkWell(
                 onTap: () => showProfileEditSheet(context),
                 borderRadius: BorderRadius.circular(6.r),
@@ -152,8 +151,14 @@ class AccountDetailsScreen extends StatelessWidget {
 // ─────────────────────────────────────────────────────
 
 class _AvatarLarge extends StatelessWidget {
-  final dynamic image;
-  const _AvatarLarge({this.image});
+  final String name;
+  const _AvatarLarge({required this.name});
+
+  String get _initial {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    return trimmed.characters.first.toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,14 +166,20 @@ class _AvatarLarge extends StatelessWidget {
     return Container(
       height: size,
       width: size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        color: AppColors.primary.withValues(alpha: 0.12),
         border: Border.all(color: AppColors.primary, width: 1.w),
       ),
-      child: ClipOval(
-        child: image != null
-            ? Image.file(image as dynamic, fit: BoxFit.cover)
-            : Image.asset('assets/images/person.jpeg', fit: BoxFit.cover),
+      child: Text(
+        _initial,
+        style: TextStyle(
+          fontSize: 48.sp,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
+          height: 1.0,
+        ),
       ),
     );
   }

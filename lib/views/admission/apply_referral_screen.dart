@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_sizes.dart';
-import 'package:smgi.connect/core/constants/app_text_styles.dart';
-import 'package:smgi.connect/viewmodels/application_viewmodel.dart';
-import 'package:smgi.connect/viewmodels/referral_viewmodel.dart';
+import 'package:smgi_connect/core/constants/app_colors.dart';
+import 'package:smgi_connect/core/constants/app_sizes.dart';
+import 'package:smgi_connect/core/constants/app_text_styles.dart';
+import 'package:smgi_connect/viewmodels/application_viewmodel.dart';
+import 'package:smgi_connect/viewmodels/referral_viewmodel.dart';
 
-
-//import '../../widgets/gap.dart';
 import '../../widgets/gradient_button.dart';
 import 'review_details_screen.dart';
 
@@ -236,6 +234,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                     opacity: animation,
                     child: SizeTransition(
                       sizeFactor: animation,
+                      // ignore: deprecated_member_use
                       axisAlignment: -1,
                       child: child,
                     ),

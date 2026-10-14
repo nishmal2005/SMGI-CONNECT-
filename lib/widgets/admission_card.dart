@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
-import '../../viewmodels/application_viewmodel.dart';
-import '../../widgets/gap.dart';
-import '../../widgets/gradient_button.dart';
-import '../admission/aadhaar_verification_screen.dart';
-import '../admission/application_status_screen.dart';
-import '../admission/course_selection_screen.dart';
-import '../admission/personal_details_screen.dart';
-import '../admission/upload_marks_card_screen.dart';
-import '../referrals/apply_referral_screen.dart';
+import '../core/constants/app_colors.dart';
+import '../core/constants/app_text_styles.dart';
+import '../viewmodels/application_viewmodel.dart';
+import 'gap.dart';
+import 'gradient_button.dart';
+import '../views/admission/aadhaar_verification_screen.dart';
+import '../views/admission/application_status_screen.dart';
+import '../views/admission/course_selection_screen.dart';
+import '../views/admission/personal_details_screen.dart';
+import '../views/admission/upload_marks_card_screen.dart';
+import '../views/referrals/apply_referral_screen.dart';
 
 class AdmissionCard extends StatelessWidget {
   /// Which stage of the admission flow the user is at.

@@ -2,10 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smgi.connect/core/constants/app_colors.dart';
-import 'package:smgi.connect/core/constants/app_assets.dart';
-import 'package:smgi.connect/widgets/nav_item.dart';
 
+import '../../core/constants/app_assets.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/nav_item.dart';
 import '../documents/document_vault_screen.dart';
 import '../payments/payment_history_screen.dart';
 import '../referrals/referral_history_screen.dart';
@@ -21,6 +21,10 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
+  /// Tracks which tabs have been opened at least once.
+  /// Unvisited tabs never mount, so they never fire their initState APIs.
+  final Set<int> _visited = {0};
+
   static const _icons = <String>[
     AppAssets.homeIcon,
     AppAssets.fileIcon,
@@ -28,19 +32,48 @@ class _HomeShellState extends State<HomeShell> {
     AppAssets.handshakeIcon,
   ];
 
-  static const _pages = <Widget>[
-    HomeScreen(),
-    DocumentVaultScreen(),
-    PaymentHistoryScreen(),
-    ReferralHistoryScreen(),
-  ];
+  void _onTabSelected(int i) {
+    if (i == _index) return;
+    setState(() {
+      _index = i;
+      _visited.add(i);
+    });
+  }
+
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return const DocumentVaultScreen();
+      case 2:
+        return const PaymentHistoryScreen();
+      case 3:
+        return const ReferralHistoryScreen();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.lightGray,
-      body: IndexedStack(index: _index, children: _pages),
+    return AppScaffold(
+      padding: EdgeInsets.zero,
+      body: _buildBody(),
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_visited.length == 1) {
+      return _buildPage(_index);
+    }
+    return IndexedStack(
+      index: _index,
+      children: List.generate(
+        _icons.length,
+        (i) => _visited.contains(i) ? _buildPage(i) : const SizedBox.shrink(),
+      ),
     );
   }
 
@@ -53,9 +86,8 @@ class _HomeShellState extends State<HomeShell> {
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             height: 62.h,
-            // padding: EdgeInsets.symmetric(horizontal: 4.w),
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
             decoration: BoxDecoration(
-              // Slightly transparent white so the frosted blur shows
               color: Colors.white.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(32.r),
               boxShadow: [
@@ -75,15 +107,10 @@ class _HomeShellState extends State<HomeShell> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
                 _icons.length,
-                (i) => Row(
-                  children: [
-                    NavItem(
-                      assetPath: _icons[i],
-                      active: _index == i,
-                      onTap: () => setState(() => _index = i),
-                    ),
-                    if (i < _icons.length - 1) SizedBox(width: 8.w),
-                  ],
+                (i) => NavItem(
+                  assetPath: _icons[i],
+                  active: _index == i,
+                  onTap: () => _onTabSelected(i),
                 ),
               ),
             ),
