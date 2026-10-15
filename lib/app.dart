@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'core/theme/app_theme.dart';
 import 'views/splash/splash_screen.dart';
-
+import 'widgets/dismiss_keyboard.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -21,6 +21,8 @@ class SMGIApp extends StatelessWidget {
         title: 'SMGI Connect',
         theme: AppTheme.light,
         navigatorKey: navigatorKey, // ← add this
+        builder: (_, child) =>
+            DismissKeyboard(child: child ?? const SizedBox.shrink()),
         home: child,
       ),
       child: const SplashScreen(),
