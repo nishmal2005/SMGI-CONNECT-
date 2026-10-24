@@ -1,12 +1,11 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:smgi_connect/core/constants/app_sizes.dart';
+import 'package:smgi_connect/viewmodels/profile_viewmodel.dart';
 
-import '../../core/constants/app_sizes.dart';
-import '../../viewmodels/profile_viewmodel.dart';
 
 /// Opens the Profile edit bottom sheet.
 Future<void> showProfileEditSheet(BuildContext context) {

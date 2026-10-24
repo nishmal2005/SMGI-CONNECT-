@@ -7,18 +7,9 @@ class AppScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget? bottomNavigationBar;
   final EdgeInsetsGeometry? padding;
-
-  /// When false, the screen draws its own SafeArea.
-  /// Use for full-bleed images (banner, splash) that should slide
-  /// under the status bar.
   final bool safeTop;
   final bool safeBottom;
-
-  /// Whether the body should resize when the keyboard appears.
-  /// Defaults to true (Flutter's default).
   final bool resizeToAvoidBottomInset;
-
-  /// Custom background — falls back to the app's light grey.
   final Color? backgroundColor;
   const AppScaffold({
     super.key,
@@ -37,9 +28,7 @@ class AppScaffold extends StatelessWidget {
       padding: padding ?? EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       child: body,
     );
-    // Only wrap in SafeArea if either side is requested.
-    // When the caller passes `appBar`, the Scaffold already consumed
-    // the top inset — so `safeTop` becomes a no-op in that case.
+    
     if (safeTop || safeBottom) {
       content = SafeArea(
         top: safeTop && appBar == null,

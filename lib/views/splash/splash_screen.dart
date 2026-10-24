@@ -1,9 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/network/api_client.dart';
 import '../home/home_shell.dart';
 import '../onboarding/onboarding_screen.dart';

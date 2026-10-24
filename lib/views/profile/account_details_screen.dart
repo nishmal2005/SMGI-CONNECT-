@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_sizes.dart';
-import '../../core/constants/app_text_styles.dart';
-import '../../viewmodels/profile_viewmodel.dart';
-import '../../widgets/app_scaffold.dart';
-import '../../widgets/back_app_bar.dart';
+import 'package:smgi_connect/core/constants/app_colors.dart';
+import 'package:smgi_connect/core/constants/app_sizes.dart';
+import 'package:smgi_connect/core/constants/app_text_styles.dart';
+import 'package:smgi_connect/viewmodels/profile_viewmodel.dart';
+import 'package:smgi_connect/widgets/app_scaffold.dart';
+import 'package:smgi_connect/widgets/back_app_bar.dart';
 import 'edit_profile_sheet.dart';
 
 class AccountDetailsScreen extends StatelessWidget {
