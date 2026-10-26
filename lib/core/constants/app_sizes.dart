@@ -6,7 +6,7 @@ class AppSizes {
   // Padding
   static double get padding => 16.w;
   static double get paddingSmall => 8.w;
-  static double get paddingLarge => 24.w;
+  static double get paddingLarge => padding;
 
   // Radius
   static double get radius => 12.r;

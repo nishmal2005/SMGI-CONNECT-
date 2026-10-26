@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 import 'package:smgi_connect/core/constants/app_text_styles.dart';
 import 'package:smgi_connect/viewmodels/auth_viewmodel.dart';
@@ -48,9 +48,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -61,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: AuthBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
             child: Column(
               children: [
                 Gap(h: 134),
@@ -72,10 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: RichText(
                     text: TextSpan(
                       children: [
-                        TextSpan(
-                          text: 'SMGI ',
-                          style: AppTextStyles.logoGold,
-                        ),
+                        TextSpan(text: 'SMGI ', style: AppTextStyles.logoGold),
                         TextSpan(
                           text: 'Connect',
                           style: AppTextStyles.logoWhite,
@@ -88,10 +85,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Gap(h: 80),
 
                 // ── Headline ───────────────────────────
-                Text(
-                  'Login to continue',
-                  style: AppTextStyles.subtitle,
-                ),
+                Text('Login to continue', style: AppTextStyles.subtitle),
 
                 Gap(h: 80),
 

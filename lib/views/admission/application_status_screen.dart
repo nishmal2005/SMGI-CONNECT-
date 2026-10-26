@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -39,12 +41,14 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
               onRefresh: () => vm.loadStatus(),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSizes.padding,
+                  vertical: 20.h,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Application Status',
-                        style: AppTextStyles.pageTitle),
+                    Text('Application Status', style: AppTextStyles.pageTitle),
                     const Gap(h: 20),
                     _statusBanner(vm),
                     const Gap(h: 24),
@@ -121,8 +125,10 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Application Details',
-              style: AppTextStyles.body2.copyWith(fontSize: 15.sp)),
+          Text(
+            'Application Details',
+            style: AppTextStyles.body2.copyWith(fontSize: 15.sp),
+          ),
           const Gap(h: 12),
           _row('Application ID', vm.applicationId ?? '—'),
           _row('Course', vm.program ?? '—'),
@@ -134,28 +140,30 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
   }
 
   Widget _row(String label, String value) => Padding(
-        padding: EdgeInsets.only(bottom: 10.h),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 120.w,
-              child: Text(label, style: AppTextStyles.body3),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: AppTextStyles.body2.copyWith(fontSize: 13.sp),
-              ),
-            ),
-          ],
+    padding: EdgeInsets.only(bottom: 10.h),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120.w,
+          child: Text(label, style: AppTextStyles.body3),
         ),
-      );
+        Expanded(
+          child: Text(
+            value,
+            style: AppTextStyles.body2.copyWith(fontSize: 13.sp),
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _stepsChecklist(ApplicationViewModel vm) {
     final steps = <(String, bool)>[
-      ('Aadhaar Verification',
-          vm.aadhaarFrontPath != null && vm.aadhaarBackPath != null),
+      (
+        'Aadhaar Verification',
+        vm.aadhaarFrontPath != null && vm.aadhaarBackPath != null,
+      ),
       ('Personal Details', vm.personal.isNotEmpty),
       ('Course Selection', vm.courseId != null),
       ('10th Marks Card', vm.marksCardPath != null),
@@ -181,8 +189,10 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Progress',
-              style: AppTextStyles.body2.copyWith(fontSize: 15.sp)),
+          Text(
+            'Progress',
+            style: AppTextStyles.body2.copyWith(fontSize: 15.sp),
+          ),
           const Gap(h: 12),
           ...steps.map(
             (s) => Padding(
@@ -190,16 +200,15 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
               child: Row(
                 children: [
                   Icon(
-                    s.$2
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
+                    s.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
                     size: 20.r,
                     color: s.$2 ? AppColors.success : AppColors.gray,
                   ),
                   SizedBox(width: 10.w),
-                  Text(s.$1,
-                      style:
-                          AppTextStyles.body2.copyWith(fontSize: 13.sp)),
+                  Text(
+                    s.$1,
+                    style: AppTextStyles.body2.copyWith(fontSize: 13.sp),
+                  ),
                 ],
               ),
             ),

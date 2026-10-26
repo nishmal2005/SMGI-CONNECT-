@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smgi_connect/core/constants/app_colors.dart';
+import 'package:smgi_connect/core/constants/app_sizes.dart';
 
 class AppScaffold extends StatelessWidget {
   final Widget body;
@@ -34,7 +35,9 @@ class AppScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget content = Padding(
-      padding: padding ?? EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      padding:
+          padding ??
+          EdgeInsets.symmetric(horizontal: AppSizes.padding, vertical: 4.h),
       child: body,
     );
     // Only wrap in SafeArea if either side is requested.

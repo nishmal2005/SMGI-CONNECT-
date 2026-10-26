@@ -1,5 +1,4 @@
 // lib/viewmodels/notification_viewmodel.dart
-
 import 'package:flutter/foundation.dart';
 import 'package:smgi_connect/core/network/api_exception.dart';
 import 'package:smgi_connect/data/models/notification_model.dart';
@@ -12,8 +11,8 @@ class NotificationViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   List<NotificationModel> items = const [];
-
-  /// Number of unread notifications — drives the bell badge.
+   
+  /// Number of unread notifications —   drives the bell badge.
   int get unreadCount => items.where((n) => !n.isRead).length;
 
   Future<void> load() async {

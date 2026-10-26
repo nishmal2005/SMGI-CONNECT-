@@ -1,8 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl =
-      'https://sweat-refueling-trustee.ngrok-free.dev/api';
+  static const String baseUrl = 'https://smgi.io/api';
 
   static void validate() {
     assert(
@@ -12,7 +11,7 @@ class ApiEndpoints {
     assert(
       !baseUrl.endsWith('/'),
       'ApiEndpoints.baseUrl must not end with / — got: $baseUrl',
-    ); 
+    );
   }
 
   // ── Auth ────────────────────────────────────────

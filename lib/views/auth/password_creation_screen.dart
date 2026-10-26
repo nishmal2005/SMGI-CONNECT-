@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
-import 'package:smgi_connect/core/constants/app_text_styles.dart' show AppTextStyles;
+import 'package:smgi_connect/core/constants/app_text_styles.dart'
+    show AppTextStyles;
 import 'package:smgi_connect/viewmodels/auth_viewmodel.dart';
-
 
 import '../../widgets/auth_background.dart';
 import '../../widgets/gap.dart';
@@ -32,9 +32,7 @@ class PasswordCreationScreen extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.errorMessage ?? 'Something went wrong.'),
-        ),
+        SnackBar(content: Text(auth.errorMessage ?? 'Something went wrong.')),
       );
     }
   }
@@ -48,7 +46,7 @@ class PasswordCreationScreen extends StatelessWidget {
       body: AuthBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -75,9 +73,7 @@ class PasswordCreationScreen extends StatelessWidget {
                 Gap(h: 84),
                 Center(
                   child: Text(
-                    isForgot
-                        ? 'Reset Your Password'
-                        : 'Create Your Password',
+                    isForgot ? 'Reset Your Password' : 'Create Your Password',
                     style: AppTextStyles.subtitle,
                     textAlign: TextAlign.center,
                   ),
@@ -102,10 +98,7 @@ class PasswordCreationScreen extends StatelessWidget {
                 Gap(h: 24),
 
                 // ── Confirm ────────────────────────────
-                Text(
-                  'Confirm Password',
-                  style: AppTextStyles.caption,
-                ),
+                Text('Confirm Password', style: AppTextStyles.caption),
                 Gap(h: 8),
                 PasswordField(
                   isValid: auth.isConfirmPasswordValid,
@@ -118,10 +111,7 @@ class PasswordCreationScreen extends StatelessWidget {
                   text: 'At least 8 characters',
                   isValid: auth.hasMinLength,
                 ),
-                PasswordRule(
-                  text: 'One uppercase',
-                  isValid: auth.hasUppercase,
-                ),
+                PasswordRule(text: 'One uppercase', isValid: auth.hasUppercase),
                 PasswordRule(text: 'One number', isValid: auth.hasNumber),
                 PasswordRule(
                   text: 'One special character',

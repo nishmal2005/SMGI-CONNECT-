@@ -39,9 +39,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
     // The backend requires an application_id when applying a referral.
     final appId = int.tryParse(app.applicationId ?? '');
     if (appId == null) {
-      _snack(
-        'Application not created yet. Complete the earlier steps first.',
-      );
+      _snack('Application not created yet. Complete the earlier steps first.');
       return;
     }
 
@@ -73,9 +71,9 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
   }
 
   void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -265,10 +263,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 8.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF3FBF5),
                   borderRadius: BorderRadius.circular(20.r),
@@ -316,11 +311,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                   color: Color(0xFF3DBE6C),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.check,
-                  size: 12.r,
-                  color: Colors.white,
-                ),
+                child: Icon(Icons.check, size: 12.r, color: Colors.white),
               ),
               SizedBox(width: 8.w),
               Text(

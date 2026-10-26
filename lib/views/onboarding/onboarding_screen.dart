@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_sizes.dart';
 import 'package:smgi_connect/core/constants/app_colors.dart';
 import 'package:smgi_connect/core/constants/app_text_styles.dart'
     show AppTextStyles;
@@ -97,7 +98,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
 
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

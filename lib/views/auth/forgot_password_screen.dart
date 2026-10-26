@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 import 'package:smgi_connect/core/constants/app_text_styles.dart';
 import 'package:smgi_connect/viewmodels/auth_viewmodel.dart';
-
 
 import '../../widgets/auth_background.dart';
 import '../../widgets/gap.dart';
@@ -55,7 +54,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: AuthBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
             child: Column(
               children: [
                 Gap(h: 134),
@@ -64,10 +63,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: RichText(
                     text: TextSpan(
                       children: [
-                        TextSpan(
-                          text: 'SMGI ',
-                          style: AppTextStyles.logoGold,
-                        ),
+                        TextSpan(text: 'SMGI ', style: AppTextStyles.logoGold),
                         TextSpan(
                           text: 'Connect',
                           style: AppTextStyles.logoWhite,
@@ -77,10 +73,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                 ),
                 Gap(h: 80),
-                Text(
-                  'Verify Your Account',
-                  style: AppTextStyles.subtitle,
-                ),
+                Text('Verify Your Account', style: AppTextStyles.subtitle),
                 Gap(h: 12),
                 Text(
                   'Enter your email to receive a password reset code.',

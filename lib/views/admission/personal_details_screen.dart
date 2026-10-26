@@ -16,20 +16,145 @@ import '../../widgets/gradient_button.dart';
 import 'course_selection_screen.dart';
 
 // ── Static Data Lists (Pure Dart - No extra packages) ──
-const List<String> nationalities = [
-  'Indian',
-  'Other',
-];
+const List<String> nationalities = ['Indian', 'Other'];
 
 // Dynamic State & District mapping (Sorted alphabetically below)
 const Map<String, List<String>> stateDistricts = {
-  'Andhra Pradesh': ['Anantapur', 'Chittoor', 'Guntur', 'Krishna', 'Kurnool', 'Visakhapatnam'],
-  'Delhi': ['Central Delhi', 'East Delhi', 'New Delhi', 'North Delhi', 'North East Delhi', 'North West Delhi', 'South Delhi', 'South East Delhi', 'South West Delhi', 'West Delhi'],
-  'Karnataka': ['Bagalkot', 'Bangalore Rural', 'Bangalore Urban', 'Belgaum', 'Bellary', 'Bidar', 'Chamarajanagar', 'Chikmagalur', 'Chitradurga', 'Dakshina Kannada', 'Davanagere', 'Dharwad', 'Gadag', 'Gulbarga', 'Hassan', 'Haveri', 'Kodagu', 'Kolar', 'Koppal', 'Mandya', 'Mysore', 'Raichur', 'Shimoga', 'Tumkur', 'Udupi', 'Uttara Kannada'],
-  'Kerala': ['Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod', 'Kollam', 'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad', 'Pathanamthitta', 'Thiruvananthapuram', 'Thrissur', 'Wayanad'],
-  'Maharashtra': ['Ahmednagar', 'Akola', 'Amravati', 'Aurangabad', 'Beed', 'Bhandara', 'Buldhana', 'Chandrapur', 'Dhule', 'Gadchiroli', 'Gondia', 'Hingoli', 'Jalgaon', 'Jalna', 'Kolhapur', 'Latur', 'Mumbai City', 'Mumbai Suburban', 'Nagpur', 'Nanded', 'Nandurbar', 'Nashik', 'Osmanabad', 'Palghar', 'Parbhani', 'Pune', 'Raigad', 'Ratnagiri', 'Sangli', 'Satara', 'Sindhudurg', 'Solapur', 'Thane', 'Wardha', 'Washim', 'Yavatmal'],
-  'Tamil Nadu': ['Ariyalur', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri', 'Dindigul', 'Erode', 'Kanchipuram', 'Kanyakumari', 'Karur', 'Madurai', 'Nagapattinam', 'Namakkal', 'Nilgiris', 'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Salem', 'Sivaganga', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur', 'Vellore', 'Viluppuram', 'Virudhunagar'],
-  'Other': ['Other District']
+  'Andhra Pradesh': [
+    'Anantapur',
+    'Chittoor',
+    'Guntur',
+    'Krishna',
+    'Kurnool',
+    'Visakhapatnam',
+  ],
+  'Delhi': [
+    'Central Delhi',
+    'East Delhi',
+    'New Delhi',
+    'North Delhi',
+    'North East Delhi',
+    'North West Delhi',
+    'South Delhi',
+    'South East Delhi',
+    'South West Delhi',
+    'West Delhi',
+  ],
+  'Karnataka': [
+    'Bagalkot',
+    'Bangalore Rural',
+    'Bangalore Urban',
+    'Belgaum',
+    'Bellary',
+    'Bidar',
+    'Chamarajanagar',
+    'Chikmagalur',
+    'Chitradurga',
+    'Dakshina Kannada',
+    'Davanagere',
+    'Dharwad',
+    'Gadag',
+    'Gulbarga',
+    'Hassan',
+    'Haveri',
+    'Kodagu',
+    'Kolar',
+    'Koppal',
+    'Mandya',
+    'Mysore',
+    'Raichur',
+    'Shimoga',
+    'Tumkur',
+    'Udupi',
+    'Uttara Kannada',
+  ],
+  'Kerala': [
+    'Alappuzha',
+    'Ernakulam',
+    'Idukki',
+    'Kannur',
+    'Kasaragod',
+    'Kollam',
+    'Kottayam',
+    'Kozhikode',
+    'Malappuram',
+    'Palakkad',
+    'Pathanamthitta',
+    'Thiruvananthapuram',
+    'Thrissur',
+    'Wayanad',
+  ],
+  'Maharashtra': [
+    'Ahmednagar',
+    'Akola',
+    'Amravati',
+    'Aurangabad',
+    'Beed',
+    'Bhandara',
+    'Buldhana',
+    'Chandrapur',
+    'Dhule',
+    'Gadchiroli',
+    'Gondia',
+    'Hingoli',
+    'Jalgaon',
+    'Jalna',
+    'Kolhapur',
+    'Latur',
+    'Mumbai City',
+    'Mumbai Suburban',
+    'Nagpur',
+    'Nanded',
+    'Nandurbar',
+    'Nashik',
+    'Osmanabad',
+    'Palghar',
+    'Parbhani',
+    'Pune',
+    'Raigad',
+    'Ratnagiri',
+    'Sangli',
+    'Satara',
+    'Sindhudurg',
+    'Solapur',
+    'Thane',
+    'Wardha',
+    'Washim',
+    'Yavatmal',
+  ],
+  'Tamil Nadu': [
+    'Ariyalur',
+    'Chennai',
+    'Coimbatore',
+    'Cuddalore',
+    'Dharmapuri',
+    'Dindigul',
+    'Erode',
+    'Kanchipuram',
+    'Kanyakumari',
+    'Karur',
+    'Madurai',
+    'Nagapattinam',
+    'Namakkal',
+    'Nilgiris',
+    'Perambalur',
+    'Pudukkottai',
+    'Ramanathapuram',
+    'Salem',
+    'Sivaganga',
+    'Thanjavur',
+    'Theni',
+    'Thoothukudi',
+    'Tiruchirappalli',
+    'Tirunelveli',
+    'Tiruvallur',
+    'Tiruvannamalai',
+    'Tiruvarur',
+    'Vellore',
+    'Viluppuram',
+    'Virudhunagar',
+  ],
+  'Other': ['Other District'],
 };
 // ───────────────────────────────────────────────────────
 
@@ -82,7 +207,8 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       initialDate: DateTime(now.year - 17, now.month, now.day),
     );
     if (picked == null) return;
-    final formatted = '${picked.day.toString().padLeft(2, '0')}/'
+    final formatted =
+        '${picked.day.toString().padLeft(2, '0')}/'
         '${picked.month.toString().padLeft(2, '0')}/'
         '${picked.year}';
     _dob.text = formatted;
@@ -93,8 +219,12 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     // Determine final state and district based on nationality
-    final finalState = vm.nationality == 'Indian' ? vm.state : _otherState.text.trim();
-    final finalDistrict = vm.nationality == 'Indian' ? vm.district : _otherDistrict.text.trim();
+    final finalState = vm.nationality == 'Indian'
+        ? vm.state
+        : _otherState.text.trim();
+    final finalDistrict = vm.nationality == 'Indian'
+        ? vm.district
+        : _otherDistrict.text.trim();
 
     final name = _name.text.trim();
     final dob = _dob.text.trim();
@@ -164,8 +294,8 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     // Get the districts based on the currently selected state, sorted alphabetically
     final List<String> currentDistricts =
         (vm.state != null && stateDistricts.containsKey(vm.state))
-            ? (List<String>.from(stateDistricts[vm.state]!)..sort())
-            : [];
+        ? (List<String>.from(stateDistricts[vm.state]!)..sort())
+        : [];
 
     return AppScaffold(
       body: Column(
@@ -175,11 +305,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
             padding: EdgeInsets.only(top: 4.h, left: 4.w),
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: Icon(
-                Icons.arrow_back,
-                color: AppColors.accent,
-                size: 22.r,
-              ),
+              icon: Icon(Icons.arrow_back, color: AppColors.accent, size: 22.r),
             ),
           ),
           Expanded(
@@ -193,8 +319,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Personal Details',
-                        style: AppTextStyles.pageTitle),
+                    Text('Personal Details', style: AppTextStyles.pageTitle),
                     Gap(h: 16),
 
                     // ── Name ─────────────────────────────
@@ -223,10 +348,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                     // ── Gender ───────────────────────────
                     _label('Gender'),
                     Gap(h: 8),
-                    GenderSelector(
-                      value: vm.gender,
-                      onChanged: vm.setGender,
-                    ),
+                    GenderSelector(value: vm.gender, onChanged: vm.setGender),
                     Gap(h: 16),
 
                     // ── Father's name ────────────────────
@@ -316,8 +438,9 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                         if (v == null || v.trim().isEmpty) {
                           return 'Required';
                         }
-                        final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                            .hasMatch(v.trim());
+                        final ok = RegExp(
+                          r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                        ).hasMatch(v.trim());
                         return ok ? null : 'Invalid email';
                       },
                     ),
@@ -403,7 +526,8 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
             ),
             child: GradientButton(
               text: vm.saving ? 'Saving...' : 'Continue',
-              enabled: vm.canContinue(
+              enabled:
+                  vm.canContinue(
                     name: _name.text,
                     dob: _dob.text,
                     father: _father.text,

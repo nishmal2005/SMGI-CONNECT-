@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../widgets/gap.dart';
 import '../downloads/downloads_screen.dart';
@@ -52,14 +53,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/Payment Success.png',
-            fit: BoxFit.cover,
-          ),
+          Image.asset('assets/images/Payment Success.png', fit: BoxFit.cover),
           SafeArea(
             child: Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -81,10 +79,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                       textAlign: TextAlign.center,
                     ),
                     Gap(h: 20),
-                    Text(
-                      _formatNow(),
-                      style: AppTextStyles.captionone,
-                    ),
+                    Text(_formatNow(), style: AppTextStyles.captionone),
                     if (widget.paymentMethod != null &&
                         widget.paymentMethod!.isNotEmpty) ...[
                       Gap(h: 12),
@@ -107,11 +102,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                             ),
                           ),
                           Gap(w: 6),
-                          Icon(
-                            Icons.copy,
-                            size: 16.r,
-                            color: Colors.white70,
-                          ),
+                          Icon(Icons.copy, size: 16.r, color: Colors.white70),
                         ],
                       ),
                     ],
@@ -135,8 +126,18 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   String _formatNow() {
     final now = DateTime.now();
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final h = now.hour % 12 == 0 ? 12 : now.hour % 12;
     final ampm = now.hour < 12 ? 'am' : 'pm';

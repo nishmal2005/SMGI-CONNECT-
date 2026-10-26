@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 import 'package:smgi_connect/core/constants/app_colors.dart';
 import 'package:smgi_connect/core/constants/app_text_styles.dart';
 import 'package:smgi_connect/data/models/course_model.dart';
 import 'package:smgi_connect/viewmodels/application_viewmodel.dart';
 import 'package:smgi_connect/viewmodels/course_viewmodel.dart';
-
 
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/gap.dart';
@@ -16,8 +17,7 @@ class CourseSelectionScreen extends StatefulWidget {
   const CourseSelectionScreen({super.key});
 
   @override
-  State<CourseSelectionScreen> createState() =>
-      _CourseSelectionScreenState();
+  State<CourseSelectionScreen> createState() => _CourseSelectionScreenState();
 }
 
 class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
@@ -41,17 +41,17 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
     if (!vm.hasSelection ||
         vm.selectedProgramId == null ||
         vm.selectedProgramId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a course.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a course.')));
       return;
     }
 
     context.read<ApplicationViewModel>().setCourse(
-          discipline: vm.selectedDisciplineTitle ?? '',
-          program: vm.selectedProgramTitle ?? '',
-          courseId: vm.selectedProgramId,
-        );
+      discipline: vm.selectedDisciplineTitle ?? '',
+      program: vm.selectedProgramTitle ?? '',
+      courseId: vm.selectedProgramId,
+    );
 
     Navigator.push(
       context,
@@ -70,7 +70,7 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
           children: [
             Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
+                horizontal: AppSizes.padding,
                 vertical: 8.h,
               ),
               child: GestureDetector(
@@ -84,11 +84,8 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
             ),
 
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Text(
-                'Course Selection',
-                style: AppTextStyles.pageTitle,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
+              child: Text('Course Selection', style: AppTextStyles.pageTitle),
             ),
 
             const Gap(h: 16),
@@ -107,10 +104,7 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(26.r),
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF0A1E4D),
-                          Color(0xFF15347A),
-                        ],
+                        colors: [Color(0xFF0A1E4D), Color(0xFF15347A)],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
@@ -161,10 +155,7 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
                 style: AppTextStyles.body2.copyWith(color: AppColors.error),
               ),
               Gap(h: 12),
-              TextButton(
-                onPressed: vm.load,
-                child: const Text('Retry'),
-              ),
+              TextButton(onPressed: vm.load, child: const Text('Retry')),
             ],
           ),
         ),
@@ -180,7 +171,7 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
     }
 
     return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
       itemCount: vm.disciplines.length,
       itemBuilder: (_, i) {
         final d = vm.disciplines[i];
@@ -193,10 +184,8 @@ class _CourseSelectionScreenState extends State<CourseSelectionScreen> {
             expanded: expanded,
             selectedProgramId: vm.selectedProgramId,
             onToggle: () => vm.toggleDiscipline(d.id),
-            onSelect: (program) => vm.selectProgram(
-              disciplineTitle: d.title,
-              program: program,
-            ),
+            onSelect: (program) =>
+                vm.selectProgram(disciplineTitle: d.title, program: program),
           ),
         );
       },
@@ -238,10 +227,7 @@ class _DisciplineTile extends StatelessWidget {
               bottom: Radius.circular(expanded ? 0 : 12.r),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 12.w,
-                vertical: 14.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
               child: Row(
                 children: [
                   Icon(visuals.icon, color: visuals.color, size: 20.r),
@@ -316,25 +302,16 @@ class _DisciplineTile extends StatelessWidget {
       return (icon: Icons.favorite, color: const Color(0xFF2FAE60));
     }
     if (t.contains('paramed')) {
-      return (
-        icon: Icons.medical_services,
-        color: const Color(0xFF1E9E8C),
-      );
+      return (icon: Icons.medical_services, color: const Color(0xFF1E9E8C));
     }
     if (t.contains('pharm')) {
       return (icon: Icons.medication, color: const Color(0xFFF5A623));
     }
     if (t.contains('ahs') || t.contains('allied')) {
-      return (
-        icon: Icons.medical_information,
-        color: const Color(0xFF7B4FE0),
-      );
+      return (icon: Icons.medical_information, color: const Color(0xFF7B4FE0));
     }
     if (t.contains('physio')) {
-      return (
-        icon: Icons.accessibility_new,
-        color: const Color(0xFF1E9E8C),
-      );
+      return (icon: Icons.accessibility_new, color: const Color(0xFF1E9E8C));
     }
     if (t.contains('law')) {
       return (icon: Icons.gavel, color: const Color(0xFFE0405C));

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 import 'package:smgi_connect/core/constants/app_text_styles.dart';
 import 'package:smgi_connect/viewmodels/auth_viewmodel.dart';
-
-
-
 
 import '../../widgets/auth_background.dart';
 import '../../widgets/gap.dart';
@@ -87,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
       body: AuthBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -97,10 +95,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   child: RichText(
                     text: TextSpan(
                       children: [
-                        TextSpan(
-                          text: 'SMGI ',
-                          style: AppTextStyles.logoGold,
-                        ),
+                        TextSpan(text: 'SMGI ', style: AppTextStyles.logoGold),
                         TextSpan(
                           text: 'Connect',
                           style: AppTextStyles.logoWhite,
@@ -158,9 +153,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   child: Text(
                     'Resend OTP',
                     style: AppTextStyles.caption.copyWith(
-                      color: vm.secondsLeft == 0
-                          ? Colors.white
-                          : Colors.grey,
+                      color: vm.secondsLeft == 0 ? Colors.white : Colors.grey,
                     ),
                   ),
                 ),

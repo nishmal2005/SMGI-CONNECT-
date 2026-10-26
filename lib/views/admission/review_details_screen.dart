@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -67,7 +69,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     return AppScaffold(
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
-          horizontal: 20.w,
+          horizontal: AppSizes.padding,
           vertical: 16.h,
         ),
         child: Column(
@@ -88,11 +90,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   ),
                 );
               },
-              icon: Icon(
-                Icons.arrow_back,
-                color: AppColors.accent,
-                size: 22.r,
-              ),
+              icon: Icon(Icons.arrow_back, color: AppColors.accent, size: 22.r),
             ),
             SizedBox(height: 8.h),
 
@@ -123,11 +121,13 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               title: 'Required Documents',
               data: {
                 'Aadhaar Card':
-                    (app.aadhaarFrontPath != null && app.aadhaarBackPath != null)
-                        ? 'Uploaded'
-                        : 'Pending',
-                '10th Marks Card':
-                    app.marksCardPath != null ? 'Uploaded' : 'Pending',
+                    (app.aadhaarFrontPath != null &&
+                        app.aadhaarBackPath != null)
+                    ? 'Uploaded'
+                    : 'Pending',
+                '10th Marks Card': app.marksCardPath != null
+                    ? 'Uploaded'
+                    : 'Pending',
               },
             ),
             SizedBox(height: 8.h),
@@ -135,9 +135,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             // ── Referral Code ───────────────────────
             _ReviewCard(
               title: 'Referral Code',
-              data: {
-                'Referral': app.referralCode ?? '—',
-              },
+              data: {'Referral': app.referralCode ?? '—'},
             ),
             SizedBox(height: 24.h),
 
@@ -159,11 +157,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       ),
                     ),
                     child: _confirmed
-                        ? Icon(
-                            Icons.check,
-                            size: 16.r,
-                            color: AppColors.accent,
-                          )
+                        ? Icon(Icons.check, size: 16.r, color: AppColors.accent)
                         : null,
                   ),
                 ),
@@ -173,9 +167,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     'I confirm that all the information provided above '
                     'is correct and complete to the best of my '
                     'knowledge and belief.',
-                    style: AppTextStyles.body3.copyWith(
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.body3.copyWith(color: AppColors.black),
                   ),
                 ),
               ],
@@ -262,19 +254,13 @@ class _ReviewCard extends StatelessWidget {
                 children: [
                   Text(
                     '${e.key}:',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: AppColors.gray,
-                    ),
+                    style: TextStyle(fontSize: 14.sp, color: AppColors.gray),
                   ),
                   Flexible(
                     child: Text(
                       e.value,
                       textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: AppColors.black,
-                      ),
+                      style: TextStyle(fontSize: 14.sp, color: AppColors.black),
                     ),
                   ),
                 ],

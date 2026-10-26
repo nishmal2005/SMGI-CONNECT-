@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
@@ -27,8 +29,7 @@ class UploadMarksCardScreen extends StatefulWidget {
   });
 
   @override
-  State<UploadMarksCardScreen> createState() =>
-      _UploadMarksCardScreenState();
+  State<UploadMarksCardScreen> createState() => _UploadMarksCardScreenState();
 }
 
 class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
@@ -58,17 +59,14 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
       final id = widget.documentId;
       if (id == null || id.isEmpty) {
         setState(() => _submitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document id missing.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Document id missing.')));
         return;
       }
 
       final docVm = context.read<DocumentViewModel>();
-      final ok = await docVm.reuploadById(
-        id: id,
-        file: File(_pickedPath!),
-      );
+      final ok = await docVm.reuploadById(id: id, file: File(_pickedPath!));
 
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -157,13 +155,12 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
                   ),
                 );
               },
-              icon: Icon(Icons.arrow_back,
-                  color: AppColors.accent, size: 22.r),
+              icon: Icon(Icons.arrow_back, color: AppColors.accent, size: 22.r),
             ),
             SizedBox(height: 10.h),
 
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -177,7 +174,7 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
                   Text(
                     widget.isReupload
                         ? 'Your previous upload was rejected. Please '
-                          'select a new file to replace it.'
+                              'select a new file to replace it.'
                         : 'Upload Marks Card',
                     style: AppTextStyles.fieldTitle.copyWith(
                       fontWeight: FontWeight.w400,
@@ -192,18 +189,13 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
                   ),
                   SizedBox(height: 30.h),
 
-                  UploadFileStatusCard(
-                    fileName: fileName,
-                    onClear: _clearFile,
-                  ),
+                  UploadFileStatusCard(fileName: fileName, onClear: _clearFile),
                   SizedBox(height: 40.h),
 
                   GradientButton(
                     text: _submitting
                         ? 'Submitting...'
-                        : (widget.isReupload
-                            ? 'Submit Re-upload'
-                            : 'Continue'),
+                        : (widget.isReupload ? 'Submit Re-upload' : 'Continue'),
                     enabled: _pickedPath != null && !_submitting,
                     onTap: _onContinue,
                   ),

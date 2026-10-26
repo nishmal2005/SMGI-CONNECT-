@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -109,10 +111,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     }
 
     context.read<ApplicationViewModel>().setAadhaar(
-          number: vm.aadhaar,
-          frontPath: vm.frontImage?.path,
-          backPath: vm.backImage?.path,
-        );
+      number: vm.aadhaar,
+      frontPath: vm.frontImage?.path,
+      backPath: vm.backImage?.path,
+    );
 
     Navigator.push(
       context,
@@ -129,14 +131,14 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     final frontNeeds = forced == 'front'
         ? true
         : forced == 'back'
-            ? false
-            : vm.frontNeedsReupload;
+        ? false
+        : vm.frontNeedsReupload;
 
     final backNeeds = forced == 'back'
         ? true
         : forced == 'front'
-            ? false
-            : vm.backNeedsReupload;
+        ? false
+        : vm.backNeedsReupload;
 
     if (frontNeeds) {
       if (_newFront == null) {
@@ -175,9 +177,7 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
   }
 
   void _snack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -206,15 +206,12 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
                   ),
                 );
               },
-              icon: Icon(Icons.arrow_back,
-                  color: AppColors.accent, size: 22.r),
+              icon: Icon(Icons.arrow_back, color: AppColors.accent, size: 22.r),
             ),
             Gap(h: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: _forceReupload
-                  ? _buildReupload(vm)
-                  : _buildFull(vm),
+              padding: EdgeInsets.symmetric(horizontal: AppSizes.padding),
+              child: _forceReupload ? _buildReupload(vm) : _buildFull(vm),
             ),
           ],
         ),
@@ -234,14 +231,14 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     final frontNeeds = forced == 'front'
         ? true
         : forced == 'back'
-            ? false
-            : (widget.isReupload ? true : vm.frontNeedsReupload);
+        ? false
+        : (widget.isReupload ? true : vm.frontNeedsReupload);
 
     final backNeeds = forced == 'back'
         ? true
         : forced == 'front'
-            ? false
-            : (widget.isReupload ? true : vm.backNeedsReupload);
+        ? false
+        : (widget.isReupload ? true : vm.backNeedsReupload);
 
     if (!frontNeeds && !backNeeds) return _buildFull(vm);
 
@@ -258,8 +255,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
         Gap(h: 24),
 
         if (frontNeeds) ...[
-          Text('Aadhaar Front',
-              style: AppTextStyles.body3.copyWith(color: AppColors.black)),
+          Text(
+            'Aadhaar Front',
+            style: AppTextStyles.body3.copyWith(color: AppColors.black),
+          ),
           Gap(h: 12),
           UploadCard(
             height: 180.h,
@@ -272,8 +271,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
         ],
 
         if (backNeeds) ...[
-          Text('Aadhaar Back',
-              style: AppTextStyles.body3.copyWith(color: AppColors.black)),
+          Text(
+            'Aadhaar Back',
+            style: AppTextStyles.body3.copyWith(color: AppColors.black),
+          ),
           Gap(h: 12),
           UploadCard(
             height: 180.h,
@@ -315,9 +316,7 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
             text: 'Continue',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const PersonalDetailsScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const PersonalDetailsScreen()),
             ),
           ),
           Gap(h: 16),
@@ -330,8 +329,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
       children: [
         Text('Aadhaar Verification', style: AppTextStyles.pageTitle),
         Gap(h: 24),
-        Text('Enter Aadhaar Number (12 Digits)',
-            style: AppTextStyles.body3.copyWith(color: AppColors.black)),
+        Text(
+          'Enter Aadhaar Number (12 Digits)',
+          style: AppTextStyles.body3.copyWith(color: AppColors.black),
+        ),
         Gap(h: 8),
         CustomInputField(
           hintText: 'XXXX XXXX 1234',
@@ -344,8 +345,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           onChanged: vm.setAadhaar,
         ),
         Gap(h: 24),
-        Text('Upload Aadhaar Card (Front)',
-            style: AppTextStyles.body3.copyWith(color: AppColors.black)),
+        Text(
+          'Upload Aadhaar Card (Front)',
+          style: AppTextStyles.body3.copyWith(color: AppColors.black),
+        ),
         Gap(h: 12),
         UploadCard(
           height: 220.h,
@@ -355,8 +358,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           onTap: () => _pickImage(isFront: true),
         ),
         Gap(h: 20),
-        Text('Upload Aadhaar Card (Back)',
-            style: AppTextStyles.body3.copyWith(color: AppColors.black)),
+        Text(
+          'Upload Aadhaar Card (Back)',
+          style: AppTextStyles.body3.copyWith(color: AppColors.black),
+        ),
         Gap(h: 12),
         UploadCard(
           height: 220.h,
@@ -375,4 +380,4 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
       ],
     );
   }
-} 
+}
