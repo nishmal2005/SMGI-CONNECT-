@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smgi_connect/core/constants/app_colors.dart';
-
 import 'gradient_button.dart';
 
 class LeaveConfirmationDialog extends StatelessWidget {

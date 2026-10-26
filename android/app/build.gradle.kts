@@ -1,9 +1,17 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    // REMOVED: id("kotlin-android") <-- fixes the Kotlin Gradle Plugin warning
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// 1. Load keystore properties safely
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -16,10 +24,21 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // 2. Release Signing Config
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storeFile = file(keystoreProperties.getProperty("storeFile"))
+            storePassword = keystoreProperties.getProperty("storePassword")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.smgi.connect"
-        minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        // 3. CHANGED: Hardcoded to 23 to prevent flutter_secure_storage from crashing
+        minSdk = flutter.minSdkVersion 
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
@@ -34,16 +53,18 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            
+            // 4. CHANGED: Disable these to fix the white screen issue
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
-    // ── Enable the features that defaultConfig uses ─────────
     buildFeatures {
         buildConfig = true
-        resValues   = true      // ← THIS FIXES YOUR ERROR
+        resValues   = true      
     }
-    // ────────────────────────────────────────────────────────
 }
 
 kotlin {

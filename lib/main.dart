@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smgi_connect/data/repositories/document_repository.dart';
-
 import 'app.dart';
 import 'core/constants/api_endpoints.dart';
 import 'core/network/api_client.dart';
-
 import 'data/repositories/aadhaar_repository.dart';
 import 'data/repositories/application_repository.dart';
 import 'data/repositories/auth_repository.dart';
@@ -14,7 +12,6 @@ import 'data/repositories/notification_repository.dart';
 import 'data/repositories/payment_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/referral_repository.dart';
-
 import 'viewmodels/aadhaar_viewmodel.dart';
 import 'viewmodels/application_viewmodel.dart';
 import 'viewmodels/auth_viewmodel.dart';
@@ -26,7 +23,6 @@ import 'viewmodels/payment_viewmodel.dart';
 import 'viewmodels/personal_details_viewmodel.dart';
 import 'viewmodels/profile_viewmodel.dart';
 import 'viewmodels/referral_viewmodel.dart';
-
 import 'views/auth/login_screen.dart';
 
 void main() {

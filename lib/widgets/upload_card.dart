@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smgi_connect/core/constants/app_text_styles.dart';
-
 import 'gap.dart';
 
 class UploadCard extends StatelessWidget {

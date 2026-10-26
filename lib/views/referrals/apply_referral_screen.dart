@@ -7,9 +7,6 @@ import 'package:smgi_connect/core/constants/app_text_styles.dart';
 import 'package:smgi_connect/viewmodels/application_viewmodel.dart';
 import 'package:smgi_connect/viewmodels/referral_viewmodel.dart';
 import 'package:smgi_connect/views/admission/review_details_screen.dart';
-
-
-//import '../../widgets/gap.dart';
 import '../../widgets/gradient_button.dart';
 
 class ApplyReferralScreen extends StatefulWidget {
@@ -74,6 +71,18 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
     context.read<ApplicationViewModel>().setReferralCode(null);
   }
 
+  /// Skip the referral step entirely — referral code is optional.
+  void _onSkip() {
+    // Make sure no referral is attached to the application.
+    context.read<ReferralViewModel>().clearApplied();
+    context.read<ApplicationViewModel>().setReferralCode(null);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ReviewDetailsScreen()),
+    );
+  }
+
   void _snack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -117,8 +126,9 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                 SizedBox(width: 10.w),
                 Expanded(
                   child: Text(
-                    'Referral code can be applied by mediators including '
-                    'faculty, students, or others who assist with admissions.',
+                    'Referral code is optional. You can apply a code from a '
+                    'mediator (faculty, student, or others who assist with '
+                    'admissions), or skip this step to continue.',
                     style: AppTextStyles.caption.copyWith(
                       color: const Color(0xFF777777),
                     ),
@@ -135,17 +145,40 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Back ────────────────────────────
-              IconButton(
-                padding: EdgeInsets.zero,
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: AppColors.accent,
-                  size: 22.r,
+              // ── Back + Skip row ─────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: AppColors.accent,
+                        size: 22.r,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    TextButton(
+                      onPressed: _onSkip,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Skip',
+                        style: AppTextStyles.fieldTitle.copyWith(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                onPressed: () => Navigator.pop(context),
               ),
-              
+
               // ── Title ───────────────────────────
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -155,6 +188,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                 ),
               ),
               SizedBox(height: 16.h),
+
               // ── Yellow banner ───────────────────
               Container(
                 width: double.infinity,
@@ -164,7 +198,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Apply your referral code.',
+                      'Apply your referral code. (Optional)',
                       style: AppTextStyles.captionone,
                     ),
                     SizedBox(height: 14.h),
@@ -221,6 +255,7 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                   ],
                 ),
               ),
+
               // ── Animated reveal ─────────────────
               AnimatedSize(
                 duration: const Duration(milliseconds: 350),
@@ -241,12 +276,58 @@ class _ApplyReferralScreenState extends State<ApplyReferralScreen> {
                       : const SizedBox.shrink(),
                 ),
               ),
+
+              // ── Skip-to-continue (when no code applied) ──
+              if (!vm.hasApplied)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 20.h),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: AppSizes.buttonHeight,
+                        child: OutlinedButton(
+                          onPressed: _onSkip,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: AppColors.accent,
+                              width: 1.2.w,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radius),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Skip & Continue',
+                                style: AppTextStyles.fieldTitle.copyWith(
+                                  color: AppColors.accent,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Icon(
+                                Icons.arrow_forward,
+                                size: 18.r,
+                                color: AppColors.accent,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
       ),
     );
   }
+
   Widget _buildReferrerDetailsSection(ReferralViewModel vm) {
     final r = vm.appliedReferral;
     if (r == null) return const SizedBox.shrink();
