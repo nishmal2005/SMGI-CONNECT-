@@ -13,6 +13,9 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+val releaseSigningProperties = listOf("keyAlias", "keyPassword", "storeFile", "storePassword")
+val hasReleaseSigningProperties = keystorePropertiesFile.exists() &&
+    releaseSigningProperties.all { !keystoreProperties.getProperty(it).isNullOrBlank() }
 
 android {
     namespace = "com.smgi.connect"
@@ -25,12 +28,14 @@ android {
     }
 
     // 2. Release Signing Config
-    signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-            storeFile = file(keystoreProperties.getProperty("storeFile"))
-            storePassword = keystoreProperties.getProperty("storePassword")
+    if (hasReleaseSigningProperties) {
+        signingConfigs {
+            create("release") {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
         }
     }
 
@@ -53,7 +58,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigningProperties) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             
             // 4. CHANGED: Disable these to fix the white screen issue
             isMinifyEnabled = false
