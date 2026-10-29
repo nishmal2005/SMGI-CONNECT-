@@ -4,15 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/navigation/nav_guard.dart';
 import '../../core/utils/image_compress.dart';
 import '../../viewmodels/aadhaar_viewmodel.dart';
 import '../../viewmodels/application_viewmodel.dart';
+import '../../viewmodels/document_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/custom_input_field.dart';
 import '../../widgets/gap.dart';
@@ -22,11 +23,7 @@ import '../../widgets/upload_card.dart';
 import 'personal_details_screen.dart';
 
 class AadhaarVerificationScreen extends StatefulWidget {
-  /// When true → opened from Document Vault to re-upload a flagged side.
   final bool isReupload;
-
-  /// Which side to reupload: 'front' | 'back' | null (both).
-  /// Only meaningful when [isReupload] is true.
   final String? reuploadSide;
 
   const AadhaarVerificationScreen({
@@ -56,6 +53,9 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     _aadhaarController = TextEditingController(text: vm.aadhaar);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       vm.loadStatus();
+      // Prime the shared document list so the vault + this screen
+      // reflect the same set of documents.
+      context.read<DocumentViewModel>().load();
     });
   }
 
@@ -74,23 +74,32 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
     final file = await compressForUpload(raw);
     if (!mounted) return;
 
-    if (_forceReupload) {
-      setState(() {
-        if (isFront) {
-          _newFront = file;
-        } else {
-          _newBack = file;
-        }
-      });
+    setState(() {
+      if (isFront) {
+        _newFront = file;
+      } else {
+        _newBack = file;
+      }
+    });
+
+    // Mirror into AadhaarViewModel so its getters (canContinue,
+    // isFrontUploaded, isBackUploaded) keep working unchanged.
+    final vm = context.read<AadhaarViewModel>();
+    if (isFront) {
+      vm.setFrontImage(file);
     } else {
-      final vm = context.read<AadhaarViewModel>();
-      isFront ? vm.setFrontImage(file) : vm.setBackImage(file);
+      vm.setBackImage(file);
     }
   }
 
   // ── First-time upload ───────────────────────────
   Future<void> _submitFull(AadhaarViewModel vm) async {
+    final docVm = context.read<DocumentViewModel>();
+
+    vm.setAadhaar(_aadhaarController.text);
+
     final ok = await vm.upload();
+
     if (!mounted) return;
 
     if (!ok) {
@@ -110,35 +119,39 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
       return;
     }
 
+    // Success → refresh the shared document list so the vault sees
+    // the newly-uploaded Aadhaar front/back.
+    docVm.load();
+
     context.read<ApplicationViewModel>().setAadhaar(
       number: vm.aadhaar,
       frontPath: vm.frontImage?.path,
       backPath: vm.backImage?.path,
     );
 
-    Navigator.push(
+    NavGuard.push(
       context,
-      MaterialPageRoute(builder: (_) => const PersonalDetailsScreen()),
+      const PersonalDetailsScreen(),
+      key: '/personal-details',
     );
   }
 
   // ── Reupload one or both sides ──────────────────
   Future<void> _submitReupload(AadhaarViewModel vm) async {
-    final forced = widget.reuploadSide; // 'front' | 'back' | null
+    final docVm = context.read<DocumentViewModel>();
+    final forced = widget.reuploadSide;
 
-    // When the vault passes a specific side, honor it. Otherwise
-    // fall back to the VM's per-side flags (inline reupload case).
     final frontNeeds = forced == 'front'
         ? true
         : forced == 'back'
         ? false
-        : vm.frontNeedsReupload;
+        : vm.frontNeedsReupload || _newFront != null;
 
     final backNeeds = forced == 'back'
         ? true
         : forced == 'front'
         ? false
-        : vm.backNeedsReupload;
+        : vm.backNeedsReupload || _newBack != null;
 
     if (frontNeeds) {
       if (_newFront == null) {
@@ -166,12 +179,17 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
 
     if (!mounted) return;
 
+    // Refresh shared document list so the vault reflects the new
+    // upload immediately.
+    docVm.load();
+
     if (widget.isReupload) {
       Navigator.pop(context, true);
     } else {
-      Navigator.push(
+      NavGuard.push(
         context,
-        MaterialPageRoute(builder: (_) => const PersonalDetailsScreen()),
+        const PersonalDetailsScreen(),
+        key: '/personal-details',
       );
     }
   }
@@ -223,11 +241,8 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
   // Reupload mode
   // ──────────────────────────────────────────────────
   Widget _buildReupload(AadhaarViewModel vm) {
-    final forced = widget.reuploadSide; // 'front' | 'back' | null
+    final forced = widget.reuploadSide;
 
-    // If the vault told us which side, honor that. Otherwise use
-    // the VM's flags. When opened via `isReupload: true` from the
-    // vault with no side specified, show both sides.
     final frontNeeds = forced == 'front'
         ? true
         : forced == 'back'
@@ -253,7 +268,6 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           style: AppTextStyles.condition.copyWith(color: AppColors.black),
         ),
         Gap(h: 24),
-
         if (frontNeeds) ...[
           Text(
             'Aadhaar Front',
@@ -269,7 +283,6 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           ),
           Gap(h: 20),
         ],
-
         if (backNeeds) ...[
           Text(
             'Aadhaar Back',
@@ -285,7 +298,6 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           ),
           Gap(h: 20),
         ],
-
         Gap(h: 20),
         GradientButton(
           text: vm.uploading ? 'Uploading...' : 'Submit Re-upload',
@@ -314,9 +326,10 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           Gap(h: 40),
           GradientButton(
             text: 'Continue',
-            onTap: () => Navigator.push(
+            onTap: () => NavGuard.push(
               context,
-              MaterialPageRoute(builder: (_) => const PersonalDetailsScreen()),
+              const PersonalDetailsScreen(),
+              key: '/personal-details',
             ),
           ),
           Gap(h: 16),
@@ -354,7 +367,7 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           height: 220.h,
           width: double.infinity,
           assetPath: 'assets/images/download.png',
-          isFileSelected: vm.isFrontUploaded,
+          isFileSelected: _newFront != null,
           onTap: () => _pickImage(isFront: true),
         ),
         Gap(h: 20),
@@ -367,7 +380,7 @@ class _AadhaarVerificationScreenState extends State<AadhaarVerificationScreen> {
           height: 220.h,
           width: double.infinity,
           assetPath: 'assets/images/download.png',
-          isFileSelected: vm.isBackUploaded,
+          isFileSelected: _newBack != null,
           onTap: () => _pickImage(isFront: false),
         ),
         Gap(h: 40),

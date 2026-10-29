@@ -218,13 +218,15 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   Future<void> _onContinue(PersonalDetailsViewModel vm) async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Determine final state and district based on nationality
+    // Determine final state and district based on nationality.
+    // Indian → from the VM dropdowns; Other → from the free-text fields.
     final finalState = vm.nationality == 'Indian'
-        ? vm.state
+        ? (vm.state ?? '')
         : _otherState.text.trim();
     final finalDistrict = vm.nationality == 'Indian'
-        ? vm.district
+        ? (vm.district ?? '')
         : _otherDistrict.text.trim();
+    final finalNationality = vm.nationality ?? '';
 
     final name = _name.text.trim();
     final dob = _dob.text.trim();
@@ -246,6 +248,11 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       address: address,
       pincode: pincode,
       email: email,
+      // NEW: pass the effective state / district / nationality so the
+      // non-Indian free-text values reach the backend.
+      state: finalState,
+      district: finalDistrict,
+      nationality: finalNationality,
     );
 
     if (!mounted) return;
@@ -270,7 +277,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       'mother_name': mother,
       'address': address,
       'postal_code': pincode,
-      'nationality': vm.nationality,
+      'nationality': finalNationality,
       'state': finalState,
       'district': finalDistrict,
     });
@@ -285,17 +292,26 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   Widget build(BuildContext context) {
     final vm = context.watch<PersonalDetailsViewModel>();
 
-    // Determine if the user is Indian to show Dropdowns or Text Fields
-    final bool isIndian = vm.nationality == 'Indian' || vm.nationality == null;
+    // Determine if the user is Indian to show Dropdowns or Text Fields.
+    final bool isIndian =
+        vm.nationality == 'Indian' || vm.nationality == null;
 
-    // Sort States Alphabetically
+    // Sort States Alphabetically.
     final List<String> sortedStates = stateDistricts.keys.toList()..sort();
 
-    // Get the districts based on the currently selected state, sorted alphabetically
+    // Get the districts based on the currently selected state, sorted.
     final List<String> currentDistricts =
         (vm.state != null && stateDistricts.containsKey(vm.state))
-        ? (List<String>.from(stateDistricts[vm.state]!)..sort())
-        : [];
+            ? (List<String>.from(stateDistricts[vm.state]!)..sort())
+            : [];
+
+    // ── Effective state / district used for validation & submit ──
+    // Indian  → from the VM (set by the dropdowns).
+    // Other   → from the free-text controllers.
+    final String effectiveState =
+        isIndian ? (vm.state ?? '') : _otherState.text.trim();
+    final String effectiveDistrict =
+        isIndian ? (vm.district ?? '') : _otherDistrict.text.trim();
 
     return AppScaffold(
       body: Column(
@@ -456,7 +472,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                       onChanged: (val) {
                         if (val != null) {
                           vm.setNationality(val);
-                          // Reset location fields when nationality changes
+                          // Reset location fields when nationality changes.
                           vm.setState(null);
                           vm.setDistrict(null);
                           _otherState.clear();
@@ -468,7 +484,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
 
                     // ── State & District (Conditional) ───
                     if (isIndian) ...[
-                      // Show Dropdowns for Indian
+                      // Show Dropdowns for Indian.
                       _label('State'),
                       Gap(h: 6),
                       CustomDropdown(
@@ -478,7 +494,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                         onChanged: (val) {
                           if (val != null) {
                             vm.setState(val);
-                            vm.setDistrict(null); // Reset district
+                            vm.setDistrict(null); // Reset district.
                           }
                         },
                       ),
@@ -492,7 +508,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                         onChanged: vm.setDistrict,
                       ),
                     ] else ...[
-                      // Show Text Inputs for Other
+                      // Show Text Inputs for Other.
                       _label('State'),
                       Gap(h: 6),
                       CustomInputField(
@@ -537,6 +553,10 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                     address: _address.text,
                     pincode: _pincode.text,
                     email: _email.text,
+                    // NEW: pass effective values so non-Indian users
+                    // can enable the button via the free-text fields.
+                    state: effectiveState,
+                    district: effectiveDistrict,
                   ) &&
                   !vm.saving,
               onTap: () => _onContinue(vm),

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:smgi_connect/core/constants/app_assets.dart';
 import 'package:smgi_connect/core/constants/app_colors.dart';
 import 'package:smgi_connect/core/constants/app_sizes.dart';
+import 'package:smgi_connect/core/navigation/nav_guard.dart';
 import 'package:smgi_connect/viewmodels/notification_viewmodel.dart';
 import 'package:smgi_connect/viewmodels/profile_viewmodel.dart';
 import 'package:smgi_connect/views/notification/notification_screen.dart';
@@ -61,11 +62,10 @@ class BackAppBar extends StatelessWidget {
                       assetPath: AppAssets.bellDotIcon,
                       onTap: () {
                         vm.load();
-                        Navigator.push(
+                        NavGuard.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const NotificationsScreen(),
-                          ),
+                          const NotificationsScreen(),
+                          key: '/notifications',
                         );
                       },
                     ),
@@ -105,9 +105,10 @@ class BackAppBar extends StatelessWidget {
 
             // ── Avatar with letter initial ──
             _AvatarButton(
-              onTap: () => Navigator.push(
+              onTap: () => NavGuard.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                const ProfileScreen(),
+                key: ProfileScreen.routeName, // '/profile'
               ),
             ),
           ],

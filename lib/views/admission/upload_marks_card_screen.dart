@@ -1,12 +1,15 @@
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../core/constants/app_sizes.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/navigation/nav_guard.dart';
+import '../../core/utils/image_compress.dart';
 import '../../viewmodels/application_viewmodel.dart';
 import '../../viewmodels/document_viewmodel.dart';
 import '../../widgets/app_scaffold.dart';
@@ -42,7 +45,13 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
     );
     if (result == null || result.files.single.path == null) return;
-    setState(() => _pickedPath = result.files.single.path!);
+
+    final raw = File(result.files.single.path!);
+    if (!mounted) return;
+    final file = await compressForUpload(raw);
+    if (!mounted) return;
+
+    setState(() => _pickedPath = file.path);
   }
 
   void _clearFile() {
@@ -123,9 +132,10 @@ class _UploadMarksCardScreenState extends State<UploadMarksCardScreen> {
     setState(() => _submitting = false);
 
     // 3) Move on to referral (which now sees a valid applicationId).
-    Navigator.push(
+    NavGuard.push(
       context,
-      MaterialPageRoute(builder: (_) => const ApplyReferralScreen()),
+      const ApplyReferralScreen(),
+      key: '/apply-referral',
     );
   }
 

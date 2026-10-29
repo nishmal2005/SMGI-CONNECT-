@@ -11,11 +11,8 @@ enum AuthFlow { register, forgotPassword }
 class AuthViewModel extends ChangeNotifier {
   AuthViewModel(this._repo);
   final AuthRepository _repo;
-
-  /// Fired after logout completes (either user-initiated or forced
-  /// by the session-expiry handler). Wire this in main.dart to
-  /// navigate to LoginScreen.
   void Function()? onLoggedOut;
+  void Function()? onLoggedIn;
 
   // ── Global auth state ───────────────────────────
   bool _isLoggedIn = false;
@@ -133,14 +130,21 @@ class AuthViewModel extends ChangeNotifier {
     final ok = await _run(() => _repo.login(email: email, password: password));
     if (ok) {
       _isLoggedIn = true;
+      // Clear any flow state left over from a previous session
+      // (e.g. verifiedEmail from a password-reset attempt) before
+      // signaling that a fresh user is logged in.
+      _resetState();
       notifyListeners();
+      // Let main.dart reload user-scoped view models for the new user.
+      onLoggedIn?.call();
     }
     return ok;
   }
 
   // ── Logout ──────────────────────────────────────
   /// User-initiated logout. Calls the backend, clears tokens,
-  /// resets state, then fires [onLoggedOut] so the app can navigate.
+  /// resets state, then fires [onLoggedOut] so the app can navigate
+  /// and reset all user-scoped view models.
   Future<void> logout() async {
     isLoading = true;
     notifyListeners();
@@ -230,6 +234,7 @@ class AuthViewModel extends ChangeNotifier {
     hasMinLength = false;
     flow = AuthFlow.register;
     isLoading = false;
+    errorMessage = null;
   }
 
   @override

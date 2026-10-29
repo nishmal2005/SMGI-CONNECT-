@@ -12,6 +12,8 @@ import 'package:smgi_connect/widgets/back_app_bar.dart';
 
 
 class ProfileScreen extends StatefulWidget {
+  static const routeName = '/profile';
+
   const ProfileScreen({super.key});
 
   @override
@@ -19,12 +21,30 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  /// Guard flag to prevent stacked pushes from rapid taps.
+  bool _navigating = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ProfileViewModel>().load();
     });
+  }
+
+  /// Pushes [page] at most once until the previous push resolves.
+  Future<void> _guardedNavigate(Widget page) async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+      );
+    } finally {
+      if (mounted) _navigating = false;
+    }
   }
 
   @override
@@ -104,23 +124,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _Tile(
               title: 'My Account',
               isFirst: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AccountDetailsScreen(),
-                  ),
-                );
-              },
+              onTap: () => _guardedNavigate(const AccountDetailsScreen()),
             ),
             _Tile(
               title: 'Settings',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                );
-              },
+              onTap: () => _guardedNavigate(const SettingsScreen()),
             ),
           ],
         ),

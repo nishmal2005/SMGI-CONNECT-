@@ -21,21 +21,15 @@ class DocumentViewModel extends ChangeNotifier {
   List<DocumentModel> items = const [];
 
   // ── ID cache ────────────────────────────────────
-  // The backend's GET /documents/ doesn't return ids, but POST does.
-  // We store {"<document_type>": {"id": "...", "ts": 1712...}} locally
-  // so PATCH reupload works even across app restarts.
   Future<Map<String, String>> _loadIdCache() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_idCacheKey);
     if (raw == null || raw.isEmpty) return {};
-
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return {};
-
       final now = DateTime.now().millisecondsSinceEpoch;
       final out = <String, String>{};
-
       decoded.forEach((k, v) {
         if (v is Map) {
           final id = v['id']?.toString();
@@ -46,7 +40,6 @@ class DocumentViewModel extends ChangeNotifier {
             out[k.toString()] = id;
           }
         } else if (v is String && v.isNotEmpty) {
-          // Legacy shape — accept it; rewritten on next save.
           out[k.toString()] = v;
         }
       });
@@ -78,7 +71,6 @@ class DocumentViewModel extends ChangeNotifier {
     await prefs.remove(_idCacheKey);
   }
 
-  /// Fuzzy lookup so `tenth_marks_card` and `10th_marks_card` still hit.
   String? _lookupId(Map<String, String> cache, String type) {
     if (cache.containsKey(type)) return cache[type];
     final needle = _normalize(type);
@@ -97,24 +89,20 @@ class DocumentViewModel extends ChangeNotifier {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
-
     try {
       final res = await _repo.list();
       final cache = await _loadIdCache();
-
       final raw = res.results
           .whereType<Map>()
           .map((e) => DocumentModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-
       items = raw.map((doc) {
         if (doc.id.isNotEmpty) return doc;
-        final cached = _lookupId(cache, doc.documentType) ??
-            _lookupId(cache, doc.title);
+        final cached =
+            _lookupId(cache, doc.documentType) ?? _lookupId(cache, doc.title);
         if (cached == null || cached.isEmpty) return doc;
         return doc.copyWith(id: cached);
       }).toList();
-
       if (kDebugMode) {
         for (final d in items) {
           debugPrint(
@@ -125,36 +113,33 @@ class DocumentViewModel extends ChangeNotifier {
       }
     } on ApiException catch (e) {
       errorMessage = e.message;
-      // Don't wipe `items` — user still sees the previous list.
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  // ── POST /documents/ ────────────────────────────
+  // ── POST /documents/ (with optional extra fields) ──
   Future<bool> upload({
     required String documentType,
     required File file,
+    Map<String, String>? extraFields,
   }) async {
     isUploading = true;
     errorMessage = null;
     notifyListeners();
-
     try {
       final res = await _repo.upload(
         documentType: documentType,
         file: file,
+        extraFields: extraFields,
       );
-
-      // Cache the id from the POST response for later reupload.
       final obj = res.object;
       final data = obj?['data'];
       final map = data is Map ? Map<String, dynamic>.from(data) : obj;
       final id = map?['id']?.toString();
       final returnedType =
           map?['document_type']?.toString() ?? documentType;
-
       if (id != null && id.isNotEmpty) {
         await _rememberId(documentType, id);
         if (returnedType != documentType) {
@@ -164,7 +149,6 @@ class DocumentViewModel extends ChangeNotifier {
           debugPrint('[DOCS] cached id $id for $documentType');
         }
       }
-
       await load();
       return true;
     } on ApiException catch (e) {
@@ -174,6 +158,43 @@ class DocumentViewModel extends ChangeNotifier {
       isUploading = false;
       notifyListeners();
     }
+  }
+
+  /// Upload both Aadhaar sides through the same `/documents/` endpoint
+  /// used for all other documents. `aadhaar_number` is forwarded as an
+  /// extra form field so the backend can associate it with each side.
+  Future<bool> uploadAadhaar({
+    required String aadhaarNumber,
+    required File? front,
+    required File? back,
+    String frontType = 'aadhaar_front',
+    String backType = 'aadhaar_back',
+  }) async {
+    if (front == null && back == null) {
+      errorMessage = 'Please pick at least one Aadhaar side.';
+      notifyListeners();
+      return false;
+    }
+
+    final extra = {'aadhaar_number': aadhaarNumber};
+
+    if (front != null) {
+      final ok = await upload(
+        documentType: frontType,
+        file: front,
+        extraFields: extra,
+      );
+      if (!ok) return false;
+    }
+    if (back != null) {
+      final ok = await upload(
+        documentType: backType,
+        file: back,
+        extraFields: extra,
+      );
+      if (!ok) return false;
+    }
+    return true;
   }
 
   // ── PATCH /documents/<id>/ ──────────────────────
@@ -186,11 +207,9 @@ class DocumentViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-
     isUploading = true;
     errorMessage = null;
     notifyListeners();
-
     try {
       await _repo.reupload(id: id, file: file);
       await load();
@@ -202,5 +221,16 @@ class DocumentViewModel extends ChangeNotifier {
       isUploading = false;
       notifyListeners();
     }
+  }
+
+  DocumentModel? findByType(String type) {
+    final needle = _normalize(type);
+    for (final d in items) {
+      if (_normalize(d.documentType) == needle ||
+          _normalize(d.title) == needle) {
+        return d;
+      }
+    }
+    return null;
   }
 }

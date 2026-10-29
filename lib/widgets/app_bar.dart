@@ -5,14 +5,59 @@ import 'package:provider/provider.dart';
 import 'package:smgi_connect/core/constants/app_assets.dart';
 import 'package:smgi_connect/core/constants/app_colors.dart';
 import 'package:smgi_connect/core/constants/app_sizes.dart';
+import 'package:smgi_connect/core/navigation/nav_guard.dart';
 import 'package:smgi_connect/viewmodels/notification_viewmodel.dart';
 import 'package:smgi_connect/viewmodels/profile_viewmodel.dart';
 import 'package:smgi_connect/views/menu/menu_screen.dart';
 import 'package:smgi_connect/views/notification/notification_screen.dart';
 import 'package:smgi_connect/views/profile/profile_screen.dart';
 
-class HomeAppBar extends StatelessWidget {
+class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});
+
+  @override
+  State<HomeAppBar> createState() => _HomeAppBarState();
+}
+
+class _HomeAppBarState extends State<HomeAppBar> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user-scoped data for the CURRENT session as soon as the
+    // home app bar is mounted (i.e. right after login/register).
+    // This prevents showing the previous user's unread count / initial.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<ProfileViewModel>().load();
+      context.read<NotificationViewModel>().load();
+    });
+  }
+
+  // ── Guarded navigations (NavGuard survives remounts) ──────────────
+
+  void _openMyAccount() {
+    NavGuard.push(
+      context,
+      const MyAccountPage(),
+      key: '/my-account',
+    );
+  }
+
+  void _openNotifications() {
+    NavGuard.push(
+      context,
+      const NotificationsScreen(),
+      key: '/notifications',
+    );
+  }
+
+  void _openProfile() {
+    NavGuard.push(
+      context,
+      const ProfileScreen(),
+      key: ProfileScreen.routeName, // '/profile'
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,15 +67,10 @@ class HomeAppBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // ── Left: menu icon → Profile ──────────────
+          // ── Left: menu icon → My Account ───────────
           _IconBox(
             assetPath: AppAssets.menuIcon,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MyAccountPage()),
-              );
-            },
+            onTap: _openMyAccount,
           ),
 
           // ── Right: notifications + avatar ──────────
@@ -44,15 +84,7 @@ class HomeAppBar extends StatelessWidget {
                     children: [
                       _IconBox(
                         assetPath: AppAssets.bellDotIcon,
-                        onTap: () {
-                          vm.load();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const NotificationsScreen(),
-                            ),
-                          );
-                        },
+                        onTap: _openNotifications,
                       ),
                       if (vm.unreadCount > 0)
                         Positioned(
@@ -89,12 +121,7 @@ class HomeAppBar extends StatelessWidget {
               SizedBox(width: 12.w),
 
               // ── Avatar with letter initial ──────────
-              _AvatarButton(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                ),
-              ),
+              _AvatarButton(onTap: _openProfile),
             ],
           ),
         ],
@@ -109,7 +136,7 @@ class _IconBox extends StatelessWidget {
   final String? assetPath;
   final VoidCallback? onTap;
 
-  const _IconBox({this.icon, this.assetPath, this.onTap});
+  const _IconBox({this.assetPath, this.onTap}) : icon = null;
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +183,8 @@ class _AvatarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Watch the profile VM for the user's name.
-    final name = context.watch<ProfileViewModel>().name;
+    final vm = context.watch<ProfileViewModel>();
+    final initial = _initial(vm.name);
 
     return GestureDetector(
       onTap: onTap,
@@ -177,7 +205,7 @@ class _AvatarButton extends StatelessWidget {
           ],
         ),
         child: Text(
-          _initial(name),
+          initial,
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.w600,
@@ -194,7 +222,6 @@ class _AvatarButton extends StatelessWidget {
   String _initial(String name) {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return '?';
-    // Use runes to handle multi-byte Unicode safely.
     return String.fromCharCode(trimmed.runes.first).toUpperCase();
   }
 }

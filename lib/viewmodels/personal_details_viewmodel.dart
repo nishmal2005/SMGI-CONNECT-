@@ -61,6 +61,10 @@ class PersonalDetailsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Validates the form using the **effective** state/district values.
+  /// For Indian users these come from the dropdowns (`vm.state` /
+  /// `vm.district`); for non-Indian users they come from the free-text
+  /// fields on the screen. Either way the caller passes them in.
   bool canContinue({
     required String name,
     required String dob,
@@ -71,6 +75,8 @@ class PersonalDetailsViewModel extends ChangeNotifier {
     required String address,
     required String pincode,
     required String email,
+    required String state,
+    required String district,
   }) {
     final d1 = _digitsOnly(phone1);
     final d2 = _digitsOnly(phone2);
@@ -86,8 +92,8 @@ class PersonalDetailsViewModel extends ChangeNotifier {
         pincode.trim().length == 6 &&
         _emailRegex.hasMatch(email.trim()) &&
         _nationality != null &&
-        _state != null &&
-        _district != null;
+        state.trim().isNotEmpty &&
+        district.trim().isNotEmpty;
   }
 
   static final RegExp _emailRegex =
@@ -103,6 +109,11 @@ class PersonalDetailsViewModel extends ChangeNotifier {
     required String address,
     required String pincode,
     required String email,
+    // NEW: effective state / district / nationality passed in by the
+    // screen, so non-Indian users' free-text values reach the backend.
+    required String state,
+    required String district,
+    required String nationality,
   }) async {
     saving = true;
     errorMessage = null;
@@ -119,7 +130,7 @@ class PersonalDetailsViewModel extends ChangeNotifier {
       final body = <String, dynamic>{
         'full_name': name.trim(),
         'dob': isoDob,
-        'gender': _gender,
+        'gender': _normalizeGender(_gender),
         'father_name': father.trim(),
         'mother_name': mother.trim(),
         'contact_1': c1,
@@ -127,9 +138,9 @@ class PersonalDetailsViewModel extends ChangeNotifier {
         'address': address.trim(),
         'postal_code': pincode.trim(),
         'email': email.trim(),
-        'nationality': _nationality,
-        'state': _state,
-        'district': _district,
+        'nationality': nationality,
+        'state': state.trim(),
+        'district': district.trim(),
       };
 
       await _repo.save(body);
@@ -140,6 +151,30 @@ class PersonalDetailsViewModel extends ChangeNotifier {
     } finally {
       saving = false;
       notifyListeners();
+    }
+  }
+
+  /// Maps any UI-originated gender string to the exact value the backend
+  /// expects: 'Male' | 'Female' | 'Other' | 'Prefer not to say'.
+  String _normalizeGender(String? raw) {
+    final t = (raw ?? '').trim().toLowerCase();
+    switch (t) {
+      case 'male':
+      case 'm':
+        return 'Male';
+      case 'female':
+      case 'f':
+        return 'Female';
+      case 'other':
+      case 'o':
+        return 'Other';
+      case 'prefer not to say':
+      case 'prefer_not_to_say':
+      case 'prefernottosay':
+        return 'Prefer not to say';
+      default:
+        // Unknown value — default to Male rather than sending garbage.
+        return 'Male';
     }
   }
 
